@@ -20,7 +20,7 @@ export default function Home() {
                         </span>
                     </h1>
                     <p className="">with your assistant</p>
-                    <div className="flex gap-10">
+                    <div className="flex flex-col md:flex-row gap-10 items-stretch">
                         <CoolButton title="Get Started" href="/chat">
                             Try our AI Agent
                         </CoolButton>
