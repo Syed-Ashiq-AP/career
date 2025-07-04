@@ -1,0 +1,389 @@
+{
+  "categories": {
+    "Technical/Scientific": {
+      "description": "Technology, engineering, data science, research",
+      "common_subjects": ["PCM", "Computer Science", "Statistics"],
+      "common_degrees": ["B.Tech", "B.Sc Data Science", "Engineering", "Computer Science"]
+    },
+    "Helping Professions": {
+      "description": "Healthcare, education, social work, counseling",
+      "common_subjects": ["PCB", "Psychology", "Sociology"],
+      "common_degrees": ["MBBS", "Nursing", "Psychology", "Social Work", "B.Ed"]
+    },
+    "Creative/Artistic": {
+      "description": "Design, arts, media, entertainment",
+      "common_subjects": ["Fine Arts", "Design", "Literature", "Media"],
+      "common_degrees": ["BFA", "B.Des", "Animation", "Graphic Design"]
+    },
+    "Business/Leadership": {
+      "description": "Management, entrepreneurship, finance, marketing",
+      "common_subjects": ["Commerce", "Business Studies", "Economics"],
+      "common_degrees": ["BBA", "MBA", "B.Com", "Marketing", "Finance"]
+    },
+    "Hands-on/Practical": {
+      "description": "Physical work, trades, sports, technical skills",
+      "common_subjects": ["Vocational Training", "Physical Education", "PCB"],
+      "common_degrees": ["B.Arch", "Physiotherapy", "Sports Science"]
+    }
+  },
+  "question_groups": {
+    "interests_and_subjects": {
+      "questions": [
+        {
+          "id": 1,
+          "question": "Which subjects do you enjoy most in school?",
+          "options": {
+            "a": {
+              "text": "Math & Science",
+              "category": "Technical/Scientific",
+              "careers": ["Engineer", "Data Scientist", "Software Developer", "Researcher", "Architect", "Doctor"]
+            },
+            "b": {
+              "text": "English & History", 
+              "category": "Social Sciences/Education",
+              "careers": ["Teacher", "Historian", "Writer", "Journalist", "Lawyer", "Public Policy Analyst"]
+            },
+            "c": {
+              "text": "Art & Design",
+              "category": "Creative/Artistic", 
+              "careers": ["Graphic Designer", "Artist", "Animator", "Fashion Designer", "Photographer", "Interior Designer"]
+            },
+            "d": {
+              "text": "Physical Education & Sports",
+              "category": "Hands-on/Practical",
+              "careers": ["Personal Trainer", "Sports Coach", "Physical Therapist", "Athlete", "Fitness Instructor"]
+            }
+          }
+        },
+        {
+          "id": 25,
+          "question": "Are you interested in a career in the following areas?",
+          "options": {
+            "a": {
+              "text": "Technology",
+              "category": "Technical/Scientific",
+              "careers": ["Software Developer", "Data Scientist", "AI Specialist"]
+            },
+            "b": {
+              "text": "Health & Medicine",
+              "category": "Helping Professions",
+              "careers": ["Nurse", "Doctor", "Psychologist", "Public Health Expert"]
+            },
+            "c": {
+              "text": "Arts & Entertainment",
+              "category": "Creative/Artistic",
+              "careers": ["Filmmaker", "Musician", "Actor", "Artist"]
+            },
+            "d": {
+              "text": "Business & Entrepreneurship",
+              "category": "Business/Leadership",
+              "careers": ["CEO", "Entrepreneur", "Marketing Director"]
+            }
+          }
+        }
+      ]
+    },
+    "work_preferences": {
+      "questions": [
+        {
+          "id": 2,
+          "question": "How do you prefer to work?",
+          "options": {
+            "a": {
+              "text": "In a team",
+              "category": "Business/Leadership",
+              "careers": ["Project Manager", "Team Leader", "HR Manager", "Consultant", "Event Planner"]
+            },
+            "b": {
+              "text": "Independently",
+              "category": "Creative/Technical",
+              "careers": ["Freelance Writer", "Software Developer", "Artist", "Researcher", "Entrepreneur"]
+            },
+            "c": {
+              "text": "A combination of both",
+              "category": "Hybrid",
+              "careers": ["UX Designer", "Architect", "Marketing Manager", "Social Media Manager", "Product Manager"]
+            },
+            "d": {
+              "text": "I'm unsure",
+              "category": "Exploration Needed",
+              "careers": ["Career counseling", "internships", "job shadowing"]
+            }
+          }
+        },
+        {
+          "id": 28,
+          "question": "Do you prefer:",
+          "options": {
+            "a": {
+              "text": "Structured 9-to-5 job",
+              "category": "Business/Leadership",
+              "careers": ["Accountant", "Financial Analyst", "Corporate Manager"]
+            },
+            "b": {
+              "text": "Irregular hours",
+              "category": "Creative/Technical",
+              "careers": ["Software Developer", "Freelancer", "Designer"]
+            },
+            "c": {
+              "text": "Freelance or flexible job",
+              "category": "Creative/Artistic",
+              "careers": ["Freelancer", "Entrepreneur", "Consultant"]
+            },
+            "d": {
+              "text": "Not sure",
+              "category": "Exploration Needed",
+              "careers": ["Open to various roles"]
+            }
+          }
+        }
+      ]
+    },
+    "personality_and_motivation": {
+      "questions": [
+        {
+          "id": 3,
+          "question": "What motivates you to work hard?",
+          "options": {
+            "a": {
+              "text": "Solving complex problems",
+              "category": "Technical/Scientific",
+              "careers": ["Engineer", "Data Analyst", "Scientist", "Programmer", "Cybersecurity Specialist"]
+            },
+            "b": {
+              "text": "Helping others",
+              "category": "Helping Professions",
+              "careers": ["Nurse", "Teacher", "Social Worker", "Counselor", "Psychologist", "Nonprofit Worker"]
+            },
+            "c": {
+              "text": "Creative expression",
+              "category": "Creative/Artistic",
+              "careers": ["Graphic Designer", "Writer", "Musician", "Filmmaker", "Fashion Designer", "Photographer"]
+            },
+            "d": {
+              "text": "Earning a good salary",
+              "category": "Business/Leadership",
+              "careers": ["Financial Analyst", "Entrepreneur", "Sales Manager", "Consultant", "Investment Banker"]
+            }
+          }
+        },
+        {
+          "id": 6,
+          "question": "How would you describe your personality?",
+          "options": {
+            "a": {
+              "text": "Logical and analytical",
+              "category": "Technical/Scientific",
+              "careers": ["Engineer", "Data Scientist", "Programmer", "Architect", "Financial Analyst"]
+            },
+            "b": {
+              "text": "Compassionate and helpful",
+              "category": "Helping Professions",
+              "careers": ["Nurse", "Teacher", "Social Worker", "Counselor", "Psychologist", "Nonprofit Worker"]
+            },
+            "c": {
+              "text": "Creative and imaginative",
+              "category": "Creative/Artistic",
+              "careers": ["Graphic Designer", "Writer", "Musician", "Filmmaker", "Fashion Designer", "Photographer"]
+            },
+            "d": {
+              "text": "Energetic and social",
+              "category": "Business/Leadership",
+              "careers": ["Sales Manager", "Event Planner", "Marketing Manager", "Public Relations Specialist", "Entrepreneur"]
+            }
+          }
+        }
+      ]
+    },
+    "learning_and_environment": {
+      "questions": [
+        {
+          "id": 4,
+          "question": "How do you prefer to learn?",
+          "options": {
+            "a": {
+              "text": "Hands-on activities",
+              "category": "Hands-on/Practical",
+              "careers": ["Mechanic", "Chef", "Electrician", "Carpenter", "Personal Trainer", "Lab Technician"]
+            },
+            "b": {
+              "text": "Reading books or articles",
+              "category": "Social Sciences/Education",
+              "careers": ["Writer", "Researcher", "Historian", "Librarian", "Lawyer", "Academic"]
+            },
+            "c": {
+              "text": "Listening to lectures",
+              "category": "Technical/Scientific",
+              "careers": ["Engineer", "Scientist", "Doctor", "Architect", "Data Analyst"]
+            },
+            "d": {
+              "text": "Visual aids, such as videos",
+              "category": "Creative/Artistic",
+              "careers": ["Graphic Designer", "Animator", "Video Editor", "Photographer", "UX Designer"]
+            }
+          }
+        },
+        {
+          "id": 5,
+          "question": "Which type of environment do you feel most comfortable in?",
+          "options": {
+            "a": {
+              "text": "Busy office or laboratory",
+              "category": "Technical/Scientific",
+              "careers": ["Software Developer", "Researcher", "Lab Scientist", "Engineer", "Data Analyst"]
+            },
+            "b": {
+              "text": "Outdoors or in nature",
+              "category": "Hands-on/Practical",
+              "careers": ["Park Ranger", "Geologist", "Environmental Scientist", "Farmer", "Wildlife Biologist"]
+            },
+            "c": {
+              "text": "Creative studio or gallery",
+              "category": "Creative/Artistic",
+              "careers": ["Artist", "Graphic Designer", "Photographer", "Fashion Designer", "Interior Designer"]
+            },
+            "d": {
+              "text": "Quiet place to focus",
+              "category": "Technical/Creative",
+              "careers": ["Writer", "Programmer", "Researcher", "Architect", "Data Scientist"]
+            }
+          }
+        }
+      ]
+    },
+    "career_aspirations": {
+      "questions": [
+        {
+          "id": 11,
+          "question": "Which of the following sounds most appealing?",
+          "options": {
+            "a": {
+              "text": "Doctor / Engineer",
+              "category": "Technical/Scientific",
+              "careers": ["Doctor", "Engineer", "Data Scientist", "Architect", "Researcher", "IT Specialist"]
+            },
+            "b": {
+              "text": "Teacher / Social Worker",
+              "category": "Helping Professions",
+              "careers": ["Teacher", "Social Worker", "Counselor", "Nurse", "Psychologist", "Nonprofit Worker"]
+            },
+            "c": {
+              "text": "Artist or Graphic Designer",
+              "category": "Creative/Artistic",
+              "careers": ["Artist", "Graphic Designer", "Photographer", "Animator", "Fashion Designer", "Writer"]
+            },
+            "d": {
+              "text": "Manager or Entrepreneur",
+              "category": "Business/Leadership",
+              "careers": ["Entrepreneur", "Business Manager", "Marketing Manager", "Consultant", "Project Manager"]
+            }
+          }
+        },
+        {
+          "id": 19,
+          "question": "What would be your dream job?",
+          "options": {
+            "a": {
+              "text": "A scientist or researcher",
+              "category": "Technical/Scientific",
+              "careers": ["Research Scientist", "Biotech Researcher", "Pharmacologist"]
+            },
+            "b": {
+              "text": "A therapist or counselor",
+              "category": "Helping Professions",
+              "careers": ["Therapist", "Counselor", "Psychologist"]
+            },
+            "c": {
+              "text": "A musician or writer",
+              "category": "Creative/Artistic",
+              "careers": ["Musician", "Writer", "Composer"]
+            },
+            "d": {
+              "text": "A CEO or manager",
+              "category": "Business/Leadership",
+              "careers": ["CEO", "Manager", "Operations Manager"]
+            }
+          }
+        }
+      ]
+    },
+    "work_values": {
+      "questions": [
+        {
+          "id": 14,
+          "question": "What's more important to you in a career?",
+          "options": {
+            "a": {
+              "text": "Financial stability",
+              "category": "Business/Technical",
+              "careers": ["Financial Analyst", "Engineer", "Doctor", "Lawyer", "IT Specialist"]
+            },
+            "b": {
+              "text": "Making a difference",
+              "category": "Helping Professions",
+              "careers": ["Teacher", "Nurse", "Social Worker", "Counselor", "Nonprofit Worker", "Public Health Professional"]
+            },
+            "c": {
+              "text": "Creative freedom",
+              "category": "Creative/Artistic",
+              "careers": ["Graphic Designer", "Writer", "Musician", "Filmmaker", "Fashion Designer", "Photographer"]
+            },
+            "d": {
+              "text": "Personal growth",
+              "category": "Business/Leadership",
+              "careers": ["Entrepreneur", "Manager", "Consultant", "Public Speaker", "Career Coach"]
+            }
+          }
+        },
+        {
+          "id": 31,
+          "question": "How do you feel about taking risks in your career?",
+          "options": {
+            "a": {
+              "text": "I'm comfortable with taking risks",
+              "category": "Business/Leadership",
+              "careers": ["Entrepreneur", "Startup Founder", "Product Manager", "Venture Capitalist"]
+            },
+            "b": {
+              "text": "I prefer to avoid risks",
+              "category": "Technical/Scientific",
+              "careers": ["Accountant", "Research Analyst", "IT Specialist", "Financial Analyst"]
+            },
+            "c": {
+              "text": "I'm open to risks if they seem worth it",
+              "category": "Business/Technical",
+              "careers": ["Product Manager", "Consultant", "Marketing Lead"]
+            },
+            "d": {
+              "text": "It depends on the work",
+              "category": "Hybrid",
+              "careers": ["Professor", "IT Specialist", "Product Manager"]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "scoring_weights": {
+    "Technical/Scientific": {
+      "subjects": ["PCM", "Computer Science", "Statistics", "Engineering"],
+      "degrees": ["B.Tech", "B.Sc Data Science", "Engineering", "Computer Science", "AI", "Robotics"]
+    },
+    "Helping Professions": {
+      "subjects": ["PCB", "Psychology", "Sociology", "Health"],
+      "degrees": ["MBBS", "Nursing", "Psychology", "Social Work", "B.Ed", "Counseling"]
+    },
+    "Creative/Artistic": {
+      "subjects": ["Fine Arts", "Design", "Literature", "Media", "Drama", "Music"],
+      "degrees": ["BFA", "B.Des", "Animation", "Graphic Design", "Film Studies", "Music"]
+    },
+    "Business/Leadership": {
+      "subjects": ["Commerce", "Business Studies", "Economics", "Leadership"],
+      "degrees": ["BBA", "MBA", "B.Com", "Marketing", "Finance", "Entrepreneurship"]
+    },
+    "Hands-on/Practical": {
+      "subjects": ["Vocational Training", "Physical Education", "PCB"],
+      "degrees": ["B.Arch", "Physiotherapy", "Sports Science", "Mechanics"]
+    }
+  }
+}
