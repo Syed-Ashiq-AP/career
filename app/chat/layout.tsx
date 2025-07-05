@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
-import { Toaster } from "@/components/ui/toaster";
 import "./chat.css";
 
 import { AI } from "./action";
@@ -43,38 +42,27 @@ export const viewport = {
     ],
 };
 
-export default function RootLayout({
+export default function ChatLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" suppressHydrationWarning>
-            <meta
-                name="viewport"
-                content="width=device-width, initial-scale=1, maximum-scale=1"
-            />
-            <body
-                className={`font-sans antialiased ${GeistSans.variable} ${GeistMono.variable}`}
+        <AI>
+            <Providers
+                attribute="class"
+                defaultTheme="dark"
+                enableSystem
+                disableTransitionOnChange
             >
-                <Toaster />
-                <AI>
-                    <Providers
-                        attribute="class"
-                        defaultTheme="dark"
-                        enableSystem
-                        disableTransitionOnChange
-                    >
-                        <div className="flex flex-col min-h-screen">
-                            <Header />
-                            <main className="flex flex-col flex-1 bg-muted/50 dark:bg-background px-4 overflow-x-hidden">
-                                {children}
-                            </main>
-                        </div>
-                    </Providers>
-                </AI>
-            </body>
-        </html>
+                <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex flex-col flex-1 bg-muted/50 dark:bg-background px-4 overflow-x-hidden">
+                        {children}
+                    </main>
+                </div>
+            </Providers>
+        </AI>
     );
 }
 

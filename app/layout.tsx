@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -23,7 +25,15 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${inter.variable} antialiased`}>
+            <head>
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1, maximum-scale=1"
+                />
+            </head>
+            <body
+                className={`${inter.variable} ${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
+            >
                 <AuthProvider>
                     <UserProvider>
                         <ThemeProvider

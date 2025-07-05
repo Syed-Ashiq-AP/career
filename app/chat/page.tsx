@@ -139,6 +139,10 @@ export default function Page() {
     const [currentLlmResponse, setCurrentLlmResponse] = useState("");
     const [hasProcessedInitialPrompt, setHasProcessedInitialPrompt] =
         useState(false);
+    const processedPromptRef = useRef(false);
+    const [shouldProcessPrompt, setShouldProcessPrompt] = useState<
+        string | null
+    >(null);
     const handleFollowUpClick = useCallback(async (question: string) => {
         setCurrentLlmResponse("");
         await handleUserMessageSubmission({
@@ -200,119 +204,102 @@ export default function Page() {
         setSelectedMentionToolLogo(null);
         setFile("");
     };
-    const handleUserMessageSubmission = async (payload: {
-        logo: any;
-        message: string;
-        mentionTool: string | null;
-        file: string;
-    }): Promise<void> => {
-        const newMessageId = Date.now();
-        const newMessage = {
-            id: newMessageId,
-            type: "userMessage",
-            userMessage: payload.message,
-            mentionTool: payload.mentionTool,
-            file: payload.file,
-            logo: payload.logo,
-            content: "",
-            images: [],
-            videos: [],
-            followUp: null,
-            isStreaming: true,
-            searchResults: [] as SearchResult[],
-            places: [] as Place[],
-            shopping: [] as Shopping[],
-            status: "",
-            ticker: undefined,
-            semanticCacheKey: null,
-            cachedData: "",
-            isolatedView: !!payload.mentionTool,
-            falBase64Image: null,
-        };
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
-        let lastAppendedResponse = "";
-        try {
-            const streamableValue = await myAction(
-                payload.message,
-                payload.mentionTool,
-                payload.logo,
-                payload.file
-            );
+    const handleUserMessageSubmission = useCallback(
+        async (payload: {
+            logo: any;
+            message: string;
+            mentionTool: string | null;
+            file: string;
+        }): Promise<void> => {
+            const newMessageId = Date.now();
+            const newMessage = {
+                id: newMessageId,
+                type: "userMessage",
+                userMessage: payload.message,
+                mentionTool: payload.mentionTool,
+                file: payload.file,
+                logo: payload.logo,
+                content: "",
+                images: [],
+                videos: [],
+                followUp: null,
+                isStreaming: true,
+                searchResults: [] as SearchResult[],
+                places: [] as Place[],
+                shopping: [] as Shopping[],
+                status: "",
+                ticker: undefined,
+                semanticCacheKey: null,
+                cachedData: "",
+                isolatedView: !!payload.mentionTool,
+                falBase64Image: null,
+            };
+            setMessages((prevMessages) => [...prevMessages, newMessage]);
+            let lastAppendedResponse = "";
+            try {
+                const streamableValue = await myAction(
+                    payload.message,
+                    payload.mentionTool,
+                    payload.logo,
+                    payload.file
+                );
 
-            let llmResponseString = "";
-            for await (const message of readStreamableValue(streamableValue)) {
-                const typedMessage = message as StreamMessage;
-                setMessages((prevMessages) => {
-                    const messagesCopy = [...prevMessages];
-                    const messageIndex = messagesCopy.findIndex(
-                        (msg) => msg.id === newMessageId
-                    );
-                    if (messageIndex !== -1) {
-                        const currentMessage = messagesCopy[messageIndex];
+                let llmResponseString = "";
+                for await (const message of readStreamableValue(
+                    streamableValue
+                )) {
+                    const typedMessage = message as StreamMessage;
+                    setMessages((prevMessages) => {
+                        const messagesCopy = [...prevMessages];
+                        const messageIndex = messagesCopy.findIndex(
+                            (msg) => msg.id === newMessageId
+                        );
+                        if (messageIndex !== -1) {
+                            const currentMessage = messagesCopy[messageIndex];
 
-                        currentMessage.status =
-                            typedMessage.status === "rateLimitReached"
-                                ? "rateLimitReached"
-                                : currentMessage.status;
+                            currentMessage.status =
+                                typedMessage.status === "rateLimitReached"
+                                    ? "rateLimitReached"
+                                    : currentMessage.status;
 
-                        if (typedMessage.isolatedView) {
-                            currentMessage.isolatedView = true;
-                        }
+                            if (typedMessage.isolatedView) {
+                                currentMessage.isolatedView = true;
+                            }
 
-                        if (
-                            typedMessage.llmResponse &&
-                            typedMessage.llmResponse !== lastAppendedResponse
-                        ) {
-                            currentMessage.content += typedMessage.llmResponse;
-                            lastAppendedResponse = typedMessage.llmResponse;
-                        }
+                            if (
+                                typedMessage.llmResponse &&
+                                typedMessage.llmResponse !==
+                                    lastAppendedResponse
+                            ) {
+                                currentMessage.content +=
+                                    typedMessage.llmResponse;
+                                lastAppendedResponse = typedMessage.llmResponse;
+                            }
 
-                        currentMessage.isStreaming = typedMessage.llmResponseEnd
-                            ? false
-                            : currentMessage.isStreaming;
-                        currentMessage.searchResults =
-                            typedMessage.searchResults ||
-                            currentMessage.searchResults;
-                        currentMessage.images = typedMessage.images
-                            ? [...typedMessage.images]
-                            : currentMessage.images;
-                        currentMessage.videos = typedMessage.videos
-                            ? [...typedMessage.videos]
-                            : currentMessage.videos;
-                        currentMessage.followUp =
-                            typedMessage.followUp || currentMessage.followUp;
-                        currentMessage.semanticCacheKey =
-                            messagesCopy[messageIndex];
-                        currentMessage.falBase64Image =
-                            typedMessage.falBase64Image;
-
-                        if (typedMessage.conditionalFunctionCallUI) {
-                            const functionCall =
-                                typedMessage.conditionalFunctionCallUI;
-                            if (functionCall.type === "places")
-                                currentMessage.places = functionCall.places;
-                            if (functionCall.type === "shopping")
-                                currentMessage.shopping = functionCall.shopping;
-                            if (functionCall.type === "ticker")
-                                currentMessage.ticker = functionCall.data;
-                        }
-
-                        if (typedMessage.cachedData) {
-                            const data = JSON.parse(typedMessage.cachedData);
-                            currentMessage.searchResults = data.searchResults;
-                            currentMessage.images = data.images;
-                            currentMessage.videos = data.videos;
-                            currentMessage.content = data.llmResponse;
-                            currentMessage.isStreaming = false;
+                            currentMessage.isStreaming =
+                                typedMessage.llmResponseEnd
+                                    ? false
+                                    : currentMessage.isStreaming;
+                            currentMessage.searchResults =
+                                typedMessage.searchResults ||
+                                currentMessage.searchResults;
+                            currentMessage.images = typedMessage.images
+                                ? [...typedMessage.images]
+                                : currentMessage.images;
+                            currentMessage.videos = typedMessage.videos
+                                ? [...typedMessage.videos]
+                                : currentMessage.videos;
+                            currentMessage.followUp =
+                                typedMessage.followUp ||
+                                currentMessage.followUp;
                             currentMessage.semanticCacheKey =
-                                data.semanticCacheKey;
-                            currentMessage.conditionalFunctionCallUI =
-                                data.conditionalFunctionCallUI;
-                            currentMessage.followUp = data.followUp;
+                                messagesCopy[messageIndex];
+                            currentMessage.falBase64Image =
+                                typedMessage.falBase64Image;
 
-                            if (data.conditionalFunctionCallUI) {
+                            if (typedMessage.conditionalFunctionCallUI) {
                                 const functionCall =
-                                    data.conditionalFunctionCallUI;
+                                    typedMessage.conditionalFunctionCallUI;
                                 if (functionCall.type === "places")
                                     currentMessage.places = functionCall.places;
                                 if (functionCall.type === "shopping")
@@ -321,50 +308,104 @@ export default function Page() {
                                 if (functionCall.type === "ticker")
                                     currentMessage.ticker = functionCall.data;
                             }
+
+                            if (typedMessage.cachedData) {
+                                const data = JSON.parse(
+                                    typedMessage.cachedData
+                                );
+                                currentMessage.searchResults =
+                                    data.searchResults;
+                                currentMessage.images = data.images;
+                                currentMessage.videos = data.videos;
+                                currentMessage.content = data.llmResponse;
+                                currentMessage.isStreaming = false;
+                                currentMessage.semanticCacheKey =
+                                    data.semanticCacheKey;
+                                currentMessage.conditionalFunctionCallUI =
+                                    data.conditionalFunctionCallUI;
+                                currentMessage.followUp = data.followUp;
+
+                                if (data.conditionalFunctionCallUI) {
+                                    const functionCall =
+                                        data.conditionalFunctionCallUI;
+                                    if (functionCall.type === "places")
+                                        currentMessage.places =
+                                            functionCall.places;
+                                    if (functionCall.type === "shopping")
+                                        currentMessage.shopping =
+                                            functionCall.shopping;
+                                    if (functionCall.type === "ticker")
+                                        currentMessage.ticker =
+                                            functionCall.data;
+                                }
+                            }
                         }
+                        return messagesCopy;
+                    });
+                    if (typedMessage.llmResponse) {
+                        llmResponseString += typedMessage.llmResponse;
+                        setCurrentLlmResponse(llmResponseString);
                     }
-                    return messagesCopy;
-                });
-                if (typedMessage.llmResponse) {
-                    llmResponseString += typedMessage.llmResponse;
-                    setCurrentLlmResponse(llmResponseString);
                 }
+            } catch (error) {
+                console.error("Error streaming data for user message:", error);
             }
-        } catch (error) {
-            console.error("Error streaming data for user message:", error);
-        }
-    };
+        },
+        [myAction]
+    );
     const handleFileUpload = (file: File) => {
-        console.log("file", file);
         const fileReader = new FileReader();
         fileReader.onload = (e) => {
             const base64File = e.target?.result;
             if (base64File) {
-                console.log("base64File", base64File);
                 setFile(String(base64File));
             }
         };
         fileReader.readAsDataURL(file);
     };
 
-    // Handle initial prompt from URL parameters
     useEffect(() => {
         const promptFromUrl = searchParams.get("prompt");
-        if (promptFromUrl && !hasProcessedInitialPrompt) {
+        if (
+            promptFromUrl &&
+            !hasProcessedInitialPrompt &&
+            !processedPromptRef.current &&
+            messages.length === 0
+        ) {
+            processedPromptRef.current = true;
             setHasProcessedInitialPrompt(true);
             setInputValue(promptFromUrl);
-            // Auto-submit the prompt after a small delay to ensure component is ready
-            setTimeout(() => {
+            setShouldProcessPrompt(promptFromUrl);
+
+            const url = new URL(window.location.href);
+            url.searchParams.delete("prompt");
+            window.history.replaceState({}, "", url.toString());
+            setInputValue("");
+        }
+    }, [searchParams, hasProcessedInitialPrompt, messages.length]);
+
+    useEffect(() => {
+        if (shouldProcessPrompt) {
+            const timeoutId = setTimeout(async () => {
                 const payload = {
-                    message: promptFromUrl,
+                    message: shouldProcessPrompt,
                     mentionTool: null,
                     logo: null,
                     file: "",
                 };
-                handleSubmit(payload);
-            }, 100);
+
+                try {
+                    await handleUserMessageSubmission(payload);
+                } catch (error) {
+                    console.error("Error submitting initial prompt:", error);
+                }
+
+                setShouldProcessPrompt(null);
+            }, 300);
+
+            return () => clearTimeout(timeoutId);
         }
-    }, [searchParams, hasProcessedInitialPrompt, handleSubmit]);
+    }, [shouldProcessPrompt, handleUserMessageSubmission]);
 
     return (
         <div>
