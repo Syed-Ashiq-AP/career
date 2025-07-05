@@ -72,7 +72,7 @@ const CareerSuggest = () => {
     };
 
     return (
-        <div className="space-y-6 mx-10">
+        <div className="space-y-6 mx-10 flex flex-col py-10">
             <div className="text-center">
                 <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Your Career Recommendations
@@ -86,10 +86,10 @@ const CareerSuggest = () => {
                 {career.careers.map((careerItem, index) => (
                     <Card
                         key={index}
-                        className="w-full transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-l-4 border-l-blue-500"
+                        className="w-full transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-l-4 border-l-blue-500 py-5"
                     >
                         <CardHeader>
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-col gap-6 md:flex-row">
                                 <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-100">
                                     {careerItem.career}
                                 </CardTitle>

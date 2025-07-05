@@ -13,7 +13,7 @@ const page = () => {
             <QuestionProvider>
                 <div className="h-dvh w-dvw flex flex-col">
                     <Navbar />
-                    <div className=" h-full flex items-center justify-center">
+                    <div className="pt-10 flex items-center justify-center">
                         <Survey />
                     </div>
                 </div>
