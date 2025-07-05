@@ -1,5 +1,6 @@
 "use client";
 import { FormEvent, useEffect, useRef, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useActions, readStreamableValue } from "ai/rsc";
 import { type AI } from "./action";
 import { ChatScrollAnchor } from "@/lib/hooks/chat-scroll-anchor";
@@ -120,6 +121,7 @@ const mentionTools = mentionToolConfig.useMentionQueries
     : [];
 
 export default function Page() {
+    const searchParams = useSearchParams();
     const [file, setFile] = useState("");
     const [mentionQuery, setMentionQuery] = useState("");
     const [selectedMentionTool, setSelectedMentionTool] = useState<
@@ -135,6 +137,8 @@ export default function Page() {
     const [inputValue, setInputValue] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [currentLlmResponse, setCurrentLlmResponse] = useState("");
+    const [hasProcessedInitialPrompt, setHasProcessedInitialPrompt] =
+        useState(false);
     const handleFollowUpClick = useCallback(async (question: string) => {
         setCurrentLlmResponse("");
         await handleUserMessageSubmission({
@@ -342,6 +346,26 @@ export default function Page() {
         };
         fileReader.readAsDataURL(file);
     };
+
+    // Handle initial prompt from URL parameters
+    useEffect(() => {
+        const promptFromUrl = searchParams.get("prompt");
+        if (promptFromUrl && !hasProcessedInitialPrompt) {
+            setHasProcessedInitialPrompt(true);
+            setInputValue(promptFromUrl);
+            // Auto-submit the prompt after a small delay to ensure component is ready
+            setTimeout(() => {
+                const payload = {
+                    message: promptFromUrl,
+                    mentionTool: null,
+                    logo: null,
+                    file: "",
+                };
+                handleSubmit(payload);
+            }, 100);
+        }
+    }, [searchParams, hasProcessedInitialPrompt, handleSubmit]);
+
     return (
         <div>
             {messages.length > 0 && (

@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 import { useQuestion } from "../question-context";
 import {
     Card,
@@ -12,8 +13,16 @@ import { Skeleton } from "../ui/skeleton";
 
 const CareerSuggest = () => {
     const questionContext = useQuestion();
+    const router = useRouter();
+
     if (!questionContext) return null;
     const { career, isCareerLoading } = questionContext;
+
+    const handleLearnMore = (careerName: string) => {
+        const prompt = `Tell me more about the ${careerName} career path. I'd like to know about the educational requirements, typical job responsibilities, salary expectations, career growth opportunities, and what skills I should develop to succeed in this field.`;
+        const encodedPrompt = encodeURIComponent(prompt);
+        router.push(`/chat?prompt=${encodedPrompt}`);
+    };
 
     if (isCareerLoading) {
         return (
@@ -120,7 +129,12 @@ const CareerSuggest = () => {
                                         <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                                         <span>High compatibility match</span>
                                     </div>
-                                    <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm transition-colors">
+                                    <button
+                                        onClick={() =>
+                                            handleLearnMore(careerItem.career)
+                                        }
+                                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm transition-colors"
+                                    >
                                         Learn more →
                                     </button>
                                 </div>
