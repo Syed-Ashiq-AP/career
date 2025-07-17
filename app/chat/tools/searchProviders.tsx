@@ -17,6 +17,10 @@ export async function getSearchResults(userMessage: string): Promise<any> {
 
 export async function braveSearch(message: string, numberOfPagesToScan = config.numberOfPagesToScan): Promise<SearchResult[]> {
     try {
+        if (!process.env.BRAVE_SEARCH_API_KEY) {
+            throw new Error('BRAVE_SEARCH_API_KEY environment variable is not set');
+        }
+        
         const response = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(message)}&count=${numberOfPagesToScan}`, {
             headers: {
                 'Accept': 'application/json',
@@ -24,13 +28,17 @@ export async function braveSearch(message: string, numberOfPagesToScan = config.
                 "X-Subscription-Token": process.env.BRAVE_SEARCH_API_KEY as string
             }
         });
+        
         if (!response.ok) {
-            console.log('Issue with response from Brave Search API');
+            console.log('Issue with response from Brave Search API:', response.status, response.statusText);
+            throw new Error(`Brave Search API returned ${response.status}: ${response.statusText}`);
         }
+        
         const jsonResponse = await response.json();
         if (!jsonResponse.web || !jsonResponse.web.results) {
             throw new Error('Invalid API response format');
         }
+        
         const final = jsonResponse.web.results.map((result: any): SearchResult => ({
             title: result.title,
             link: result.url,

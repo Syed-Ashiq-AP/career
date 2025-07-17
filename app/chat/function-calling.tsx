@@ -2,6 +2,7 @@
 import { OpenAI } from 'openai';
 import { config } from './config';
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
+import { serperSearch } from './tools/searchProviders';
 
 const client = new OpenAI({
     baseURL: config.nonOllamaBaseURL,
@@ -164,7 +165,25 @@ export async function functionCalling(query: string) {
                     },
                 },
             },
+            {
+                type: "function",
+                function: {
+                    name: "web_search",
+                    description: "Search the web for general information, news, and educational content including college rankings and educational resources.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            query: {
+                                type: "string",
+                                description: "The search query to find information on the web.",
+                            },
+                        },
+                        required: ["query"],
+                    },
+                },
+            },
         ];
+        console.log('Calling OpenAI with tools:', tools.map(t => t.function.name));
         const response = await client.chat.completions.create({
             model: MODEL,
             messages: messages,
@@ -173,13 +192,16 @@ export async function functionCalling(query: string) {
             max_tokens: 4096,
         });
         const responseMessage = response.choices[0].message;
+        console.log('Response message:', responseMessage);
         const toolCalls = responseMessage.tool_calls;
+        console.log('Tool calls:', toolCalls);
         if (toolCalls) {
             const availableFunctions = {
                 getTickers: getTickers,
                 searchPlaces: searchPlaces,
                 goShopping: goShopping,
                 searchSong: searchSong,
+                web_search: serperSearch,
             };
             messages.push(responseMessage);
             for (const toolCall of toolCalls) {
@@ -196,6 +218,11 @@ export async function functionCalling(query: string) {
                         functionResponse = await functionToCall(functionArgs.query);
                     } else if (functionName === 'searchSong') {
                         functionResponse = await functionToCall(functionArgs.query);
+                    } else if (functionName === 'web_search') {
+                        const searchResults = await functionToCall(functionArgs.query);
+                        functionResponse = JSON.stringify(searchResults);
+                    } else {
+                        throw new Error(`Unknown function: ${functionName}`);
                     }
                     return JSON.parse(functionResponse);
                 } catch (error) {
