@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { LogOut } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 // import { getMenuList } from "@/lib/menu-list";
@@ -10,7 +10,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CollapseMenuButton } from "@/components/side-panel/collapse-menu-button";
 import UseChatbot from "@/hooks/use-chatbot";
+import { createAuthClient } from "better-auth/react";
+import { UserAvatar } from "@daveyplate/better-auth-ui";
+import { authClient } from "@/lib/auth-client";
 
+const { useSession } = createAuthClient();
 interface MenuProps {
     isOpen: boolean | undefined;
 }
@@ -18,6 +22,19 @@ interface MenuProps {
 export function Menu({ isOpen }: MenuProps) {
     const pathname = usePathname();
     const { menu } = UseChatbot();
+    const { data: session } = useSession();
+
+    const router = useRouter();
+
+    const signOut = async () => {
+        await authClient.signOut({
+            fetchOptions: {
+                onSuccess: () => {
+                    router.push("/auth/sign-in");
+                },
+            },
+        });
+    };
 
     return (
         <ScrollArea className="[&>div>div[style]]:!block">
@@ -98,28 +115,47 @@ export function Menu({ isOpen }: MenuProps) {
                             )}
                         </li>
                     ))}
-                    <li className="w-full grow flex items-end">
-                        <Button
-                            onClick={() => {}}
-                            variant="outline"
-                            className="w-full justify-center h-10 mt-5"
-                        >
-                            <span
-                                className={cn(isOpen === false ? "" : "mr-4")}
-                            >
-                                <LogOut size={18} />
-                            </span>
-                            <p
-                                className={cn(
-                                    "whitespace-nowrap",
-                                    isOpen === false
-                                        ? "opacity-0 hidden"
-                                        : "opacity-100"
-                                )}
-                            >
-                                Sign out
-                            </p>
-                        </Button>
+                    <li className="w-full grow flex items-end justify-center">
+                        {session && (
+                            <div className=" p-1 rounded-lg border shadow items-center">
+                                <div className="flex space-x-4 px-2 pt-2">
+                                    <UserAvatar className="mx-auto" />
+                                    {isOpen && (
+                                        <div>
+                                            <p className="font-medium">
+                                                {session.user.name}
+                                            </p>
+                                            <span className="text-sm text-foreground">
+                                                {session.user.email}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                                <Button
+                                    onClick={signOut}
+                                    variant="outline"
+                                    className="w-full justify-center h-10 mt-5"
+                                >
+                                    <span
+                                        className={cn(
+                                            isOpen === false ? "" : "mr-4"
+                                        )}
+                                    >
+                                        <LogOut size={18} />
+                                    </span>
+                                    <p
+                                        className={cn(
+                                            "whitespace-nowrap",
+                                            isOpen === false
+                                                ? "opacity-0 hidden"
+                                                : "opacity-100"
+                                        )}
+                                    >
+                                        Sign out
+                                    </p>
+                                </Button>
+                            </div>
+                        )}
                     </li>
                 </ul>
             </nav>

@@ -4,6 +4,7 @@ import ChatBot from "@/components/page-layout/ai/chatbot";
 import { ChatBotProvider } from "@/hooks/use-chatbot";
 import { Navbar } from "@/components/side-panel/navbar";
 import { Sidebar } from "@/components/side-panel/sidebar";
+import { RedirectToSignIn } from "@daveyplate/better-auth-ui";
 
 const Providers = ({
     children,
@@ -12,6 +13,7 @@ const Providers = ({
 }: React.ComponentProps<"div"> & { userId: string; chatId?: string }) => {
     return (
         <ChatBotProvider userId={userId} chatId={chatId}>
+            <RedirectToSignIn />
             <Sidebar />{" "}
             <div className="w-full h-full">
                 <Navbar />

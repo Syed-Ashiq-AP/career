@@ -10,6 +10,7 @@ import {
     SheetTrigger,
     SheetTitle,
 } from "@/components/ui/sheet";
+import { MdAssistant } from "react-icons/md";
 
 export function SheetMenu() {
     return (
@@ -29,11 +30,8 @@ export function SheetMenu() {
                         variant="link"
                         asChild
                     >
-                        <Link
-                            href="/dashboard"
-                            className="flex items-center gap-2"
-                        >
-                            <PanelsTopLeft className="w-6 h-6 mr-1" />
+                        <Link href="/" className="flex items-center gap-2">
+                            <MdAssistant className="w-6 h-6 mr-1" />
                             <SheetTitle className="font-bold text-lg">
                                 Career AI
                             </SheetTitle>

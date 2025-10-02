@@ -1,3 +1,5 @@
+import Footer from "@/components/layout/footer";
+import Header from "@/components/layout/header";
 import { AccountView } from "@daveyplate/better-auth-ui";
 import { accountViewPaths } from "@daveyplate/better-auth-ui/server";
 
@@ -15,8 +17,13 @@ export default async function AccountPage({
     const { path } = await params;
 
     return (
-        <main className="container p-4 md:p-6">
-            <AccountView path={path} />
-        </main>
+        <div className="w-full h-full flex flex-col items-stretch">
+            <Header />
+
+            <main className="mt-15 p-4 md:p-6">
+                <AccountView path={path} />
+            </main>
+            <Footer />
+        </div>
     );
 }

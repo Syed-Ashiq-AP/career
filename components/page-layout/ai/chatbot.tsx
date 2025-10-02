@@ -161,13 +161,6 @@ export default function ChatBot() {
 
     const commandSuggestions: CommandSuggestion[] = [
         {
-            icon: <MonitorIcon className="h-4 w-4" />,
-            label: "Overview",
-            description:
-                "Shows a quick summary of B.Tech—what it is, branches, eligibility",
-            prefix: "/overview",
-        },
-        {
             icon: <FaGraduationCap className="h-4 w-4" />,
             label: "Colleges",
             description:
@@ -199,13 +192,13 @@ export default function ChatBot() {
             prefix: "/scholarships",
         },
         {
-            icon: <PiBookOpen className="h-4 w-4" />, // Lucide BookOpen for study guide
+            icon: <PiBookOpen className="h-4 w-4" />,
             label: "Prepare",
             description: "Provides a study guide for entrance exams",
             prefix: "/prepare",
         },
         {
-            icon: <PiBriefcase className="h-4 w-4" />, // Lucide Briefcase for career paths
+            icon: <PiBriefcase className="h-4 w-4" />,
             label: "Career Paths",
             description: "Shows job and higher study options after B.Tech",
             prefix: "/careerpaths",

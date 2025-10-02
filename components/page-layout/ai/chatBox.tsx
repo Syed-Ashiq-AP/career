@@ -19,8 +19,8 @@ const ChatBox = ({ message }: { message: Message }) => {
 
     const tabs: Tab[] = [
         {
-            title: "Search",
-            value: "search",
+            title: "Summary",
+            value: "summary",
             content: (
                 <div
                     key={`search-${message.id}-${responseLength}`}

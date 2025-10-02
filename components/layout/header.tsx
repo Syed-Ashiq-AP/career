@@ -5,6 +5,7 @@ import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import { Menu, X, ArrowRight, Search } from "lucide-react";
 import Link from "next/link";
 import { MdAssistant } from "react-icons/md";
+import { UserButton } from "@daveyplate/better-auth-ui";
 
 interface NavItem {
     name: string;
@@ -162,7 +163,8 @@ export default function Header() {
                             className="hidden items-center space-x-3 lg:flex"
                             variants={itemVariants}
                         >
-                            <Link
+                            <UserButton size="icon" />
+                            {/* <Link
                                 prefetch={false}
                                 href="/login"
                                 className="text-foreground/80 hover:text-foreground px-4 py-2 text-sm font-medium transition-colors duration-200"
@@ -182,7 +184,7 @@ export default function Header() {
                                     <span>Get Started</span>
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
-                            </motion.div>
+                            </motion.div> */}
                         </motion.div>
 
                         <motion.button

@@ -8,6 +8,7 @@ const page = async ({ params }: { params: Promise<{ id?: string }> }) => {
     const session = await auth.api.getSession({
         headers: await headers(),
     });
+
     return (
         <>
             <Providers
