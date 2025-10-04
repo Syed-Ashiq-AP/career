@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CollapseMenuButton } from "@/components/side-panel/collapse-menu-button";
-import UseChatbot from "@/hooks/use-chatbot";
+import UseChatbot from "@/hooks/use-chat";
 import { createAuthClient } from "better-auth/react";
 import { UserAvatar } from "@daveyplate/better-auth-ui";
 import { authClient } from "@/lib/auth-client";

@@ -29,8 +29,9 @@ import { IoDocumentOutline } from "react-icons/io5";
 
 import { motion, AnimatePresence } from "framer-motion";
 import * as React from "react";
-import UseChatbot from "@/hooks/use-chatbot";
-import ChatBox from "./chatBox";
+import UseChatbot from "@/hooks/use-chat";
+import ChatBox, { Metadata } from "./chatBox";
+import { JsonValue } from "@/lib/generated/prisma/runtime/library";
 
 interface UseAutoResizeTextareaProps {
     minHeight: number;
@@ -241,7 +242,14 @@ export default function ChatBot() {
             prefix: "/news",
         },
     ];
-    const { messages, addMessage, isTyping, setIsTyping } = UseChatbot();
+    const {
+        messages,
+        isStreaming,
+        isLoading,
+        error,
+        sendMessageStream,
+        cancel,
+    } = UseChatbot();
 
     useEffect(() => {
         if (value.startsWith("/") && !value.includes(" ")) {
@@ -329,18 +337,21 @@ export default function ChatBot() {
         }
     };
 
-    const handleSendMessage = () => {
-        if (value.trim() && !isTyping) {
-            startTransition(() => {
-                setIsTyping(true);
-                addMessage(value);
-                setValue("");
-                // setTimeout(() => {
-                //     setIsTyping(false);
-                //     setValue("");
-                //     adjustHeight(true);
-                // }, 3000);
-            });
+    const handleSendMessage = async () => {
+        if (value.trim() && !isLoading && !isStreaming) {
+            // startTransition(() => {
+            setValue("");
+            try {
+                await sendMessageStream(value);
+            } catch (error) {
+                console.error("Failed to send message:", error);
+            }
+            // setTimeout(() => {
+            //     setIsTyping(false);
+            //     setValue("");
+            //     adjustHeight(true);
+            // }, 3000);
+            // });
         }
     };
 
@@ -361,6 +372,19 @@ export default function ChatBot() {
         setRecentCommand(selectedCommand.label);
         setTimeout(() => setRecentCommand(null), 2000);
     };
+
+    const assistantContent = useCallback(
+        (i: number) => {
+            let response = "";
+            const filteredMessages = messages.slice(i);
+            for (const message of filteredMessages) {
+                if (message.role === "user") break;
+                if (message.role === "assistant") response = message.content;
+            }
+            return response;
+        },
+        [messages]
+    );
 
     return (
         <div className="flex w-screen overflow-x-hidden">
@@ -384,9 +408,33 @@ export default function ChatBot() {
                         transition={{ duration: 0.6, ease: "easeOut" }}
                     >
                         <div className="w-full max-w-4xl mx-auto">
-                            {messages.map((msg) => (
-                                <ChatBox key={msg.id} message={msg} />
-                            ))}
+                            {messages.map((msg, i) => {
+                                if (msg.role !== "user") return null;
+                                const response = assistantContent(i + 1);
+                                const metaData = msg.metadata as Metadata;
+                                const summaryTab = {
+                                    type: "summary" as const,
+                                    title: "Summary",
+                                    items: [{ content: response }],
+                                };
+                                const updatedMetadata = {
+                                    ...metaData,
+                                    tabs: [
+                                        summaryTab,
+                                        ...(metaData?.tabs || []),
+                                    ],
+                                };
+                                return (
+                                    <ChatBox
+                                        key={msg.id}
+                                        message={{
+                                            ...msg,
+                                            metadata:
+                                                updatedMetadata as unknown as JsonValue,
+                                        }}
+                                    />
+                                );
+                            })}
                         </div>
                     </motion.div>
                 )}
@@ -456,24 +504,25 @@ export default function ChatBot() {
                             transition={{ delay: 0.1 }}
                         >
                             <AnimatePresence>
-                                {isTyping && (
-                                    <motion.div
-                                        className="absolute -top-15 left-0 right-0 border-border bg-background/80 mx-auto rounded-full border px-4 py-2 shadow-lg backdrop-blur-2xl w-fit"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 20 }}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="bg-primary/10 flex h-7 w-8 items-center justify-center rounded-full text-center">
-                                                <Sparkles className="text-primary h-4 w-4" />
+                                {isLoading ||
+                                    (isStreaming && (
+                                        <motion.div
+                                            className="absolute -top-15 left-0 right-0 border-border bg-background/80 mx-auto rounded-full border px-4 py-2 shadow-lg backdrop-blur-2xl w-fit"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 20 }}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-primary/10 flex h-7 w-8 items-center justify-center rounded-full text-center">
+                                                    <Sparkles className="text-primary h-4 w-4" />
+                                                </div>
+                                                <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                                                    <span>Thinking</span>
+                                                    <TypingDots />
+                                                </div>
                                             </div>
-                                            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                                                <span>Thinking</span>
-                                                <TypingDots />
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                )}
+                                        </motion.div>
+                                    ))}
                             </AnimatePresence>
                             <AnimatePresence>
                                 {showCommandPalette && (
@@ -638,7 +687,11 @@ export default function ChatBot() {
                                     onClick={handleSendMessage}
                                     whileHover={{ scale: 1.01 }}
                                     whileTap={{ scale: 0.98 }}
-                                    disabled={isTyping || !value.trim()}
+                                    disabled={
+                                        isStreaming ||
+                                        isLoading ||
+                                        !value.trim()
+                                    }
                                     className={cn(
                                         "rounded-lg px-4 py-2 text-sm font-medium transition-all",
                                         "flex items-center gap-2",
@@ -647,7 +700,7 @@ export default function ChatBot() {
                                             : "bg-muted/50 text-muted-foreground"
                                     )}
                                 >
-                                    {isTyping ? (
+                                    {isLoading || isStreaming ? (
                                         <LoaderIcon className="h-4 w-4 animate-[spin_2s_linear_infinite]" />
                                     ) : (
                                         <SendIcon className="h-4 w-4" />
