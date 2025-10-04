@@ -5,6 +5,7 @@ import { ChatBotProvider } from "@/hooks/use-chat";
 import { Navbar } from "@/components/side-panel/navbar";
 import { Sidebar } from "@/components/side-panel/sidebar";
 import { RedirectToSignIn } from "@daveyplate/better-auth-ui";
+import { toast } from "sonner";
 
 const Providers = ({
     children,
@@ -12,7 +13,11 @@ const Providers = ({
     chatId,
 }: React.ComponentProps<"div"> & { userId: string; chatId?: string }) => {
     return (
-        <ChatBotProvider userId={userId} initialConversationId={chatId}>
+        <ChatBotProvider
+            userId={userId}
+            initialConversationId={chatId}
+            onError={(e) => toast(e.message)}
+        >
             <RedirectToSignIn />
             <Sidebar />{" "}
             <div className="w-full h-full">

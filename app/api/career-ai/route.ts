@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createLLMService } from "../../../lib/ai/llm-service";
 import dataset from "../../../data/dataset.json";
 
 export const POST = async (req: Request) => {
@@ -8,43 +9,51 @@ export const POST = async (req: Request) => {
         return NextResponse.json({ error: "invalid req" }, { status: 400 });
     }
 
-    const prompt = `
-    You are a career counselor AI. You are to ask questions that can help suggest possible future career options. ${answers.length !== 0 && `Based on the user's previous answers: ${JSON.stringify(answers)}`}
+    const systemPrompt = `You are a career counselor AI. You are to ask questions that can help suggest possible future career options.
     Suggest the next best question and have the options related to the answers (you don't have to have the options exactly from the dataset).
-    If the user has answered enough questions then reply with 'evaluate' limit it to 30 questions
+    If the user has answered enough questions then reply with 'evaluate' limit it to 30 questions.
     If not reply with only {"question":"...","options":["option1","option2",...]}
-    Below the sample dataset you can use to refer for what type of questions to ask to give your own question and option: ${JSON.stringify(dataset)}
-    `;
+    Below the sample dataset you can use to refer for what type of questions to ask to give your own question and option: ${JSON.stringify(dataset)}`;
+
+    const userPrompt =
+        answers.length !== 0
+            ? `Based on the user's previous answers: ${JSON.stringify(answers)}. Please generate the next question.`
+            : `This is the first question. Please generate an appropriate starting question.`;
 
     try {
-        const response = await fetch("https://api.a4f.co/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.A4F_API_KEY}`,
-            },
-            body: JSON.stringify({
-                model: "provider-3/gpt-4o-mini",
-                messages: [
-                    {
-                        role: "system",
-                        content: "You are a helpful career guide.",
-                    },
-                    { role: "user", content: prompt },
-                ],
-                max_tokens: 200,
-            }),
-        });
+        const llmService = createLLMService();
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            return NextResponse.json({ error: errorText }, { status: 500 });
-        }
-        const data = await response.json();
-        const aiResponseText = data.choices[0].message.content;
+        const messages = [
+            {
+                role: "system" as const,
+                content: systemPrompt,
+                metadata: null,
+                tokenCount: null,
+                finishReason: null,
+                id: "",
+                conversationId: "",
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+            {
+                role: "user" as const,
+                content: userPrompt,
+                metadata: null,
+                tokenCount: null,
+                finishReason: null,
+                id: "",
+                conversationId: "",
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+        ];
+
+        const response = await llmService.generateCompletion(messages);
+        const aiResponseText = response.content;
+
         console.log(aiResponseText);
+
         try {
-            console.log(aiResponseText);
             const question = JSON.parse(aiResponseText);
             return NextResponse.json(
                 {
@@ -53,11 +62,49 @@ export const POST = async (req: Request) => {
                 { status: 200 }
             );
         } catch (e) {
-            console.log("error!", JSON.stringify(e));
-            return NextResponse.json({ error: e }, { status: 500 });
+            console.log("JSON parse error:", JSON.stringify(e));
+            return NextResponse.json(
+                { error: "Failed to parse AI response" },
+                { status: 500 }
+            );
         }
     } catch (e) {
-        console.log("error!", JSON.stringify(e));
-        return NextResponse.json({ error: e }, { status: 500 });
+        console.log("LLM service error:", JSON.stringify(e));
+
+        // Check if it's a rate limit error
+        if (e instanceof Error && e.message.includes("429")) {
+            return NextResponse.json(
+                {
+                    error: "Rate limit exceeded. You have exceeded your current rate limit (RPM or RPD) for your plan. Please try again later.",
+                    errorCode: "RATE_LIMIT_EXCEEDED",
+                    status: 429,
+                },
+                { status: 429 }
+            );
+        }
+
+        // Check for other specific HTTP errors
+        if (e instanceof Error && e.message.includes("HTTP")) {
+            const statusMatch = e.message.match(/(\d{3})/);
+            const status = statusMatch ? parseInt(statusMatch[1]) : 500;
+
+            return NextResponse.json(
+                {
+                    error: e.message,
+                    errorCode: "API_ERROR",
+                    status: status,
+                },
+                { status: status }
+            );
+        }
+
+        // Generic error fallback
+        return NextResponse.json(
+            {
+                error: "An error occurred while processing your request",
+                errorCode: "INTERNAL_ERROR",
+            },
+            { status: 500 }
+        );
     }
 };

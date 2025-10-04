@@ -9,6 +9,7 @@ import {
     useMemo,
     useState,
 } from "react";
+import { toast } from "sonner";
 
 export type Question = {
     question: string;
@@ -55,6 +56,31 @@ export const EvaluateContextProvider = ({
         console.log(answers);
     }, [answers]);
 
+    const waitAndFetch = useCallback(
+        (answers: Answer[]) => {
+            const loop = setInterval(async () => {
+                const request = await fetch("/api/career-ai", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        answers: answers,
+                    }),
+                });
+                if (request.ok && request.status !== 429) {
+                    const res = await request.json();
+                    if (!res) return null;
+                    const question = res.question;
+                    setCurrentQuestion(question);
+                    if (currentQuestion !== null) setAnswers(answers);
+
+                    clearInterval(loop);
+                }
+            }, 5000);
+        },
+        [currentQuestion]
+    );
     const getQuestion = useCallback(
         async (answer?: string, index?: number) => {
             const newAnswers: Answer[] = answer
@@ -94,6 +120,11 @@ export const EvaluateContextProvider = ({
                         answers: newAnswers,
                     }),
                 });
+                if (request.status === 429) {
+                    toast("Too many requests, Please wait...");
+                    waitAndFetch(newAnswers);
+                    return;
+                }
                 const res = await request.json();
                 if (!res) return null;
                 const question = res.question;
@@ -101,7 +132,7 @@ export const EvaluateContextProvider = ({
             }
             if (!answer || currentQuestion !== null) setAnswers(newAnswers);
         },
-        [answers, currentQuestion]
+        [answers, currentQuestion, waitAndFetch]
     );
 
     useEffect(() => {

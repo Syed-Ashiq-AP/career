@@ -7,6 +7,7 @@ import type {
 
 interface LLMConfig {
     apiKey: string;
+    apiKeys?: string[];
     baseUrl?: string;
     model: string;
     maxTokens?: number;
@@ -27,6 +28,8 @@ interface StreamingOptions {
 export class LLMService {
     private openai: OpenAI;
     private config: LLMConfig;
+    private currentKeyIndex: number = 0;
+    private apiKeys: string[];
 
     get modelConfig() {
         return this.config;
@@ -35,10 +38,60 @@ export class LLMService {
     constructor(config: LLMConfig) {
         this.config = config;
 
+        // Parse multiple API keys if provided
+        this.apiKeys = config.apiKeys || [config.apiKey];
+
         this.openai = new OpenAI({
-            apiKey: config.apiKey,
+            apiKey: this.apiKeys[0],
             baseURL: config.baseUrl || "https://api.openai.com/v1",
         });
+    }
+
+    private rotateApiKey(): void {
+        this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
+        const newApiKey = this.apiKeys[this.currentKeyIndex];
+
+        // Create a new OpenAI instance with the rotated key
+        this.openai = new OpenAI({
+            apiKey: newApiKey,
+            baseURL: this.config.baseUrl || "https://api.openai.com/v1",
+        });
+
+        console.log(`Rotated to API key index: ${this.currentKeyIndex}`);
+    }
+
+    private async makeRequestWithRetry<T>(
+        requestFn: () => Promise<T>,
+        maxRetries: number = this.apiKeys.length - 1
+    ): Promise<T> {
+        let lastError: Error | null = null;
+
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                return await requestFn();
+            } catch (error) {
+                lastError =
+                    error instanceof Error ? error : new Error("Unknown error");
+
+                // Check if it's a rate limit error (429)
+                const isRateLimit =
+                    lastError.message.includes("429") ||
+                    lastError.message.toLowerCase().includes("rate limit");
+
+                if (isRateLimit && attempt < maxRetries) {
+                    console.log(
+                        `Rate limit hit on key ${this.currentKeyIndex}, rotating...`
+                    );
+                    this.rotateApiKey();
+                    continue;
+                }
+
+                // If it's not a rate limit error, or we've exhausted all keys, throw the error
+                throw lastError;
+            }
+        }
+
+        throw lastError || new Error("All API keys exhausted");
     }
 
     /**
@@ -219,7 +272,7 @@ export class LLMService {
         model: string;
         finishReason?: string;
     }> {
-        try {
+        return this.makeRequestWithRetry(async () => {
             const formattedMessages = this.formatMessages(messages);
 
             const response = await this.openai.chat.completions.create({
@@ -237,11 +290,7 @@ export class LLMService {
                 model: response.model,
                 finishReason: choice.finish_reason || undefined,
             };
-        } catch (error) {
-            throw error instanceof Error
-                ? error
-                : new Error("Unknown LLM error");
-        }
+        });
     }
 
     /**
@@ -268,7 +317,7 @@ export class LLMService {
         model: string;
         finishReason?: string;
     }> {
-        try {
+        return this.makeRequestWithRetry(async () => {
             const formattedMessages = this.formatMessages(messages);
 
             const response = await this.openai.chat.completions.create({
@@ -314,25 +363,31 @@ export class LLMService {
                 model: response.model,
                 finishReason: choice.finish_reason || undefined,
             };
-        } catch (error) {
-            throw error instanceof Error
-                ? error
-                : new Error("Unknown LLM error");
-        }
+        });
     }
 }
 
 export function createLLMService(): LLMService {
+    const apiKeyString = process.env.A4F_API_KEY || "";
+    if (!apiKeyString) {
+        throw new Error("API key not found");
+    }
+
+    // Parse multiple API keys from comma-separated string
+    const apiKeys = apiKeyString
+        .split(",")
+        .map((key) => key.trim())
+        .filter((key) => key.length > 0);
+
     const config = {
-        apiKey: process.env.A4F_API_KEY || "",
+        apiKey: apiKeys[0], // Primary key
+        apiKeys: apiKeys, // All keys for rotation
         baseUrl: "https://api.a4f.co/v1",
         model: "provider-3/gpt-4o-mini",
         maxTokens: 4000,
         temperature: 0.7,
     } as LLMConfig;
-    if (!config.apiKey) {
-        throw new Error("API key not found");
-    }
 
+    console.log(`Initialized LLM service with ${apiKeys.length} API keys`);
     return new LLMService(config);
 }
