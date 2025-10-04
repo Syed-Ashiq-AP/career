@@ -117,7 +117,7 @@ const ChatBox = ({ message }: { message: ConversationMessage }) => {
     const [activeTab, setActiveTab] = useState<Tab>(tabContent[0]);
 
     return (
-        <>
+        <div className="w-full flex flex-col items-stretch space-y-4 ">
             <div className="sticky top-0 z-15 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-2 rounded-b-xl">
                 <p className="capitalize text-lg font-semibold mb-4 w-8/12 text-center lg:text-left lg:w-full truncate mx-auto">
                     {message.content}
@@ -158,7 +158,7 @@ const ChatBox = ({ message }: { message: ConversationMessage }) => {
                 key={`${activeTab.value}-${tabs.length}`}
                 className={cn("mt-12 ")}
             />
-        </>
+        </div>
     );
 
     // const responseLength = message.response?.length || 0;
