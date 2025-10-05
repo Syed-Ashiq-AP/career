@@ -1,5 +1,7 @@
 "use client";
 
+import UseChatbot from "@/hooks/use-chat";
+import { useRouter } from "next/navigation";
 import {
     createContext,
     ReactNode,
@@ -25,11 +27,14 @@ export type Career = {
 export type Answer = Question & { answer: string };
 
 type evaluateContextType = {
-    getQuestion: null | ((answer?: string, index?: number) => void);
+    getQuestion: null | ((answer?: string, index?: number) => Promise<void>);
     currentQuestion: Question | null;
     answers: Answer[];
     careers: Career[] | null;
     setCurrentQuestion: null | ((data: Question) => void);
+    enquireCareer: ((career: string) => Promise<void>) | null;
+    submitTimer: number | null;
+    startTimer: () => void;
 };
 
 const evaluateContext = createContext<evaluateContextType>({
@@ -38,6 +43,9 @@ const evaluateContext = createContext<evaluateContextType>({
     setCurrentQuestion: null,
     careers: null,
     answers: [],
+    enquireCareer: null,
+    submitTimer: null,
+    startTimer: () => {},
 });
 
 export const EvaluateContextProvider = ({
@@ -45,6 +53,8 @@ export const EvaluateContextProvider = ({
 }: {
     children: ReactNode;
 }) => {
+    const router = useRouter();
+
     const [careers, setCareers] = useState<Career[] | null>(null);
 
     const [currentQuestion, setCurrentQuestion] = useState<Question | null>(
@@ -52,34 +62,159 @@ export const EvaluateContextProvider = ({
     );
     const [answers, setAnswers] = useState<Answer[]>([]);
 
-    useEffect(() => {
-        console.log(answers);
-    }, [answers]);
+    const [submitTimer, setSubmitTimer] = useState<number | null>(null);
 
-    const waitAndFetch = useCallback(
-        (answers: Answer[]) => {
-            const loop = setInterval(async () => {
-                const request = await fetch("/api/career-ai", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        answers: answers,
-                    }),
-                });
-                if (request.ok && request.status !== 429) {
-                    const res = await request.json();
-                    if (!res) return null;
-                    const question = res.question;
-                    setCurrentQuestion(question);
-                    if (currentQuestion !== null) setAnswers(answers);
-
-                    clearInterval(loop);
+    const startTimer = () => {
+        setSubmitTimer(5);
+        const timer = setInterval(() => {
+            setSubmitTimer((prev) => {
+                if (!prev) {
+                    clearInterval(timer);
+                    return null;
                 }
-            }, 5000);
+                return prev - 1;
+            });
+        }, 1000);
+    };
+
+    const { setUpConversation } = UseChatbot();
+
+    const evaluateCareer = useCallback(
+        async (answers: Answer[]): Promise<Career[] | null> => {
+            let retryCount = 0;
+            const maxRetries = 50;
+
+            const attemptFetch = async (): Promise<Career[] | null> => {
+                try {
+                    const request = await fetch("/api/career-ai/evaluate", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            answers: answers,
+                        }),
+                    });
+
+                    if (request.status === 429) {
+                        retryCount++;
+                        if (retryCount === 1) {
+                            toast(
+                                "Rate limit exceeded. Automatically retrying..."
+                            );
+                        }
+
+                        if (retryCount >= maxRetries) {
+                            toast(
+                                "Maximum retry attempts reached. Please try again later."
+                            );
+                            return null;
+                        }
+
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, 5000)
+                        );
+                        return attemptFetch();
+                    }
+
+                    if (!request.ok) {
+                        const errorData = await request
+                            .json()
+                            .catch(() => ({}));
+                        toast(errorData.error || "Failed to evaluate careers");
+                        return null;
+                    }
+
+                    const res = await request.json();
+                    if (!res || !res.careers) {
+                        toast("Invalid response from server");
+                        return null;
+                    }
+
+                    if (retryCount > 0) {
+                        toast("Successfully retrieved career evaluation!");
+                    }
+
+                    return res.careers;
+                } catch (error) {
+                    console.error("Career evaluation error:", error);
+                    toast("An error occurred while evaluating careers");
+                    return null;
+                }
+            };
+
+            return attemptFetch();
         },
-        [currentQuestion]
+        []
+    );
+
+    const fetchQuestion = useCallback(
+        async (answers: Answer[]): Promise<Question | null> => {
+            let retryCount = 0;
+            const maxRetries = 50;
+
+            const attemptFetch = async (): Promise<Question | null> => {
+                try {
+                    const request = await fetch("/api/career-ai", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            answers: answers,
+                        }),
+                    });
+
+                    if (request.status === 429) {
+                        retryCount++;
+                        if (retryCount === 1) {
+                            toast(
+                                "Rate limit exceeded. Automatically retrying..."
+                            );
+                        }
+
+                        if (retryCount >= maxRetries) {
+                            toast(
+                                "Maximum retry attempts reached. Please try again later."
+                            );
+                            return null;
+                        }
+
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, 5000)
+                        );
+                        return attemptFetch();
+                    }
+
+                    if (!request.ok) {
+                        const errorData = await request
+                            .json()
+                            .catch(() => ({}));
+                        toast(errorData.error || "Failed to get next question");
+                        return null;
+                    }
+
+                    const res = await request.json();
+                    if (!res || !res.question) {
+                        toast("Invalid response from server");
+                        return null;
+                    }
+
+                    if (retryCount > 0) {
+                        toast("Successfully retrieved next question!");
+                    }
+
+                    return res.question;
+                } catch (error) {
+                    console.error("Question fetch error:", error);
+                    toast("An error occurred while fetching question");
+                    return null;
+                }
+            };
+
+            return attemptFetch();
+        },
+        []
     );
     const getQuestion = useCallback(
         async (answer?: string, index?: number) => {
@@ -94,45 +229,28 @@ export const EvaluateContextProvider = ({
                           .filter((_, i) => i <= index)
                     : ([...answers, { ...currentQuestion, answer }] as Answer[])
                 : [];
-            if (newAnswers.length === 15) {
-                const request = await fetch("/api/career-ai/evaluate", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        answers: newAnswers,
-                    }),
-                });
-                if (request.status === 500) {
+            if (newAnswers.length >= 15) {
+                const careers = await evaluateCareer(newAnswers);
+                if (careers) {
+                    setCareers(careers);
                 }
-                const res = await request.json();
-                if (!res) return null;
-                const careers = res.careers;
-                setCareers(careers);
             } else {
-                const request = await fetch("/api/career-ai", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        answers: newAnswers,
-                    }),
-                });
-                if (request.status === 429) {
-                    toast("Too many requests, Please wait...");
-                    waitAndFetch(newAnswers);
-                    return;
+                const question = await fetchQuestion(newAnswers);
+                if (question) {
+                    setCurrentQuestion(question);
                 }
-                const res = await request.json();
-                if (!res) return null;
-                const question = res.question;
-                setCurrentQuestion(question);
             }
             if (!answer || currentQuestion !== null) setAnswers(newAnswers);
         },
-        [answers, currentQuestion, waitAndFetch]
+        [answers, currentQuestion, evaluateCareer, fetchQuestion]
+    );
+
+    const enquireCareer = useCallback(
+        async (career: string) => {
+            const id = await setUpConversation(career);
+            router.push(`/ai/${id}`);
+        },
+        [setUpConversation, router]
     );
 
     useEffect(() => {
@@ -146,8 +264,18 @@ export const EvaluateContextProvider = ({
             answers,
             setCurrentQuestion,
             careers,
+            enquireCareer,
+            startTimer,
+            submitTimer,
         }),
-        [getQuestion, currentQuestion, answers, careers]
+        [
+            getQuestion,
+            currentQuestion,
+            answers,
+            careers,
+            enquireCareer,
+            submitTimer,
+        ]
     );
 
     return (

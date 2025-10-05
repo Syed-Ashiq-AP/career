@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { useStore } from "@/hooks/use-store";
 import { cn } from "@/lib/utils";
-import { PanelsTopLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { MdAssistant } from "react-icons/md";
 
 export function Sidebar() {
     const sidebar = useStore(useSidebar, (x) => x);
@@ -34,17 +33,23 @@ export function Sidebar() {
                     asChild
                 >
                     <Link href="/" className="flex items-center gap-2">
-                        <MdAssistant className="w-6 h-6 mr-1" />
-                        <h1
-                            className={cn(
-                                "font-bold text-lg whitespace-nowrap transition-[transform,opacity,display] ease-in-out duration-300",
-                                !getOpenState()
-                                    ? "-translate-x-96 opacity-0 hidden"
-                                    : "translate-x-0 opacity-100"
-                            )}
-                        >
-                            Career AI
-                        </h1>
+                        {!getOpenState() ? (
+                            <Image
+                                src={"/logo.png"}
+                                className="mr-1"
+                                alt="Crescent Logo"
+                                width={30}
+                                height={30}
+                            />
+                        ) : (
+                            <Image
+                                src={"/logo-dark.webp"}
+                                className="mr-1"
+                                alt="Crescent Logo"
+                                width={140}
+                                height={36}
+                            />
+                        )}
                     </Link>
                 </Button>
                 <Menu isOpen={getOpenState()} />

@@ -17,6 +17,7 @@ import React, {
     useState,
 } from "react";
 import { IconType } from "react-icons/lib";
+import { toast } from "sonner";
 
 type Submenu = {
     href: string;
@@ -74,7 +75,6 @@ interface UseChatOptions {
     initialConversationId?: string;
     apiEndpoint?: string;
     streamEndpoint?: string;
-    onError?: (error: Error) => void;
     onMessageComplete?: (message: ConversationMessage) => void;
     children: ReactNode;
 }
@@ -87,6 +87,7 @@ type ChatBotContextProps = {
     isStreaming: boolean;
     error: string | null;
     sendMessageStream: (message: string) => Promise<void>;
+    setUpConversation: (message: string) => Promise<string>;
     loadConversation: (conversationId: string) => Promise<void>;
     cancel: () => void;
     reload: () => void;
@@ -105,11 +106,11 @@ const UseChatbot = () => {
 };
 
 const apiEndpoint = "/api/v3/chat",
-    streamEndpoint = "/api/v3/chat/stream";
+    streamEndpoint = "/api/v3/chat/stream",
+    completionEndpoint = "/api/v3/chat/completion";
 export const ChatBotProvider = ({
     userId,
     initialConversationId,
-    onError,
     onMessageComplete,
     children,
 }: UseChatOptions) => {
@@ -126,47 +127,44 @@ export const ChatBotProvider = ({
     const abortControllerRef = useRef<AbortController | null>(null);
     const loadedConversationRef = useRef<string | null>(null);
 
-    const loadConversation = useCallback(
-        async (conversationId: string) => {
-            if (loadedConversationRef.current === conversationId) return;
+    const loadConversation = useCallback(async (conversationId: string) => {
+        if (loadedConversationRef.current === conversationId) return;
 
-            loadedConversationRef.current = conversationId;
-            setState((prev) => ({ ...prev, isLoading: true, error: null }));
+        loadedConversationRef.current = conversationId;
+        setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-            try {
-                const response = (await axios.get(
-                    `${apiEndpoint}?conversationId=${conversationId}`,
-                    { headers: { "Content-Type": "application/json" } }
-                )) as {
-                    conversation: Conversation;
-                    messages: ConversationMessage[];
-                };
-                if (!response) {
-                    throw new Error("Failed to load conversation", response);
-                }
-
-                const { conversation, messages } = response;
-
-                setState((prev) => ({
-                    ...prev,
-                    conversationId: conversation.id,
-                    messages: messages || [],
-                    isLoading: false,
-                }));
-            } catch (error) {
-                const err =
-                    error instanceof Error ? error : new Error("Unknown Error");
-                setState((prev) => ({
-                    ...prev,
-                    isLoading: false,
-                    error: err.message,
-                }));
-                onError?.(err);
-                loadedConversationRef.current = null;
+        try {
+            const response = (await axios.get(
+                `${apiEndpoint}?conversationId=${conversationId}`,
+                { headers: { "Content-Type": "application/json" } }
+            )) as {
+                conversation: Conversation;
+                messages: ConversationMessage[];
+            };
+            if (!response) {
+                throw new Error("Failed to load conversation", response);
             }
-        },
-        [onError]
-    );
+
+            const { conversation, messages } = response;
+
+            setState((prev) => ({
+                ...prev,
+                conversationId: conversation.id,
+                messages: messages || [],
+                isLoading: false,
+            }));
+        } catch (error) {
+            const err =
+                error instanceof Error ? error : new Error("Unknown Error");
+            setState((prev) => ({
+                ...prev,
+                isLoading: false,
+                error: err.message,
+            }));
+            toast(err.message);
+            loadedConversationRef.current = null;
+        }
+    }, []);
 
     useEffect(() => {
         if (
@@ -211,13 +209,13 @@ export const ChatBotProvider = ({
                     isLoading: false,
                     error: err.message,
                 }));
-                onError?.(err);
+                toast(err.message);
                 loadedConversationRef.current = null;
             }
         };
 
         loadInitialConversation();
-    }, [initialConversationId, onError]);
+    }, [initialConversationId]);
 
     useEffect(() => {
         const eventSource = eventSourceRef.current;
@@ -451,7 +449,7 @@ export const ChatBotProvider = ({
                                             isStreaming: false,
                                             error: error.message,
                                         }));
-                                        onError?.(error);
+                                        toast(error.message);
                                         break;
 
                                     case "metadata":
@@ -501,11 +499,49 @@ export const ChatBotProvider = ({
                     isStreaming: false,
                     error: err.message,
                 }));
-                onError?.(err);
+                toast(err.message);
             }
         },
-        [state.conversationId, onError, onMessageComplete, userId]
+        [state.conversationId, onMessageComplete, userId]
     );
+
+    const setUpConversation = useCallback(
+        async (careerField: string) => {
+            const analysisPrompt = `I'm interested in pursuing a career as a ${careerField}. Please provide me with comprehensive career guidance including:
+
+1. **Current Job Market Analysis** - What's the demand for ${careerField} roles in India right now?
+2. **Required Skills & Technologies** - What technical and soft skills are essential?
+3. **Career Path & Growth** - What are the typical career progression opportunities?
+4. **Salary Expectations** - What salary ranges can I expect at different levels?
+5. **Learning Resources** - What courses, certifications, or resources would you recommend?
+6. **Job Opportunities** - Where can I find relevant job openings?
+7. **Industry Trends** - What are the latest trends and future outlook for this field?
+
+Please search for the most current information to provide accurate and up-to-date guidance for my career planning.`;
+
+            const response = await fetch(completionEndpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: analysisPrompt,
+                    userId,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Setup failed failed: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+
+            return result.conversationId;
+        },
+        [userId]
+    );
+
+    // useEffect(() => {
+    //     if (userId) setUpConversation("Full stack developer");
+    // }, [userId, setUpConversation]);
 
     const cancel = useCallback(() => {
         if (abortControllerRef.current) {
@@ -558,7 +594,7 @@ export const ChatBotProvider = ({
                         },
                         {
                             href: "/evaluate",
-                            label: "Surveys",
+                            label: "Survey",
                             icon: Bookmark,
                             // submenus: [],
                         },
@@ -583,6 +619,7 @@ export const ChatBotProvider = ({
             cancel,
             reload,
             clear,
+            setUpConversation,
         }),
         [
             cancel,
@@ -592,6 +629,7 @@ export const ChatBotProvider = ({
             sendMessageStream,
             state,
             menu,
+            setUpConversation,
         ]
     );
 

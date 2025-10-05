@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MenuIcon, PanelsTopLeft } from "lucide-react";
+import { MenuIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Menu } from "@/components/side-panel/menu";
@@ -8,9 +8,8 @@ import {
     SheetHeader,
     SheetContent,
     SheetTrigger,
-    SheetTitle,
 } from "@/components/ui/sheet";
-import { MdAssistant } from "react-icons/md";
+import Image from "next/image";
 
 export function SheetMenu() {
     return (
@@ -21,7 +20,7 @@ export function SheetMenu() {
                 </Button>
             </SheetTrigger>
             <SheetContent
-                className="sm:w-72 px-3 h-full flex flex-col"
+                className="sm:w-72 px-3 h-full flex flex-col  overflow-auto"
                 side="left"
             >
                 <SheetHeader>
@@ -31,10 +30,13 @@ export function SheetMenu() {
                         asChild
                     >
                         <Link href="/" className="flex items-center gap-2">
-                            <MdAssistant className="w-6 h-6 mr-1" />
-                            <SheetTitle className="font-bold text-lg">
-                                Career AI
-                            </SheetTitle>
+                            <Image
+                                src={"/logo-dark.webp"}
+                                className="mr-1"
+                                alt="Crescent Logo"
+                                width={140}
+                                height={36}
+                            />
                         </Link>
                     </Button>
                 </SheetHeader>

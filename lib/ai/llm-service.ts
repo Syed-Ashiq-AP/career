@@ -115,6 +115,113 @@ export class LLMService {
     }
 
     /**
+     * Generate complete response without streaming simulation
+     */
+    async generateCompletionWithTools(
+        messages: ConversationMessage[],
+        options: Omit<StreamingOptions, "onToken"> = {},
+        tools?: Array<{
+            name: string;
+            description: string;
+            parameters: Record<string, unknown>;
+        }>
+    ): Promise<string> {
+        try {
+            let response;
+            let fullResponse = "";
+
+            // If tools are provided, use the function calling method
+            if (tools && tools.length > 0) {
+                response = await this.generateWithFunctions(messages, tools);
+
+                // Handle tool calls if present
+                if (
+                    response.toolCalls &&
+                    response.toolCalls.length > 0 &&
+                    options.onFunctionCall
+                ) {
+                    // Create updated messages array with function results
+                    const updatedMessages = [...messages];
+
+                    // Add the assistant's tool call request (if there was content)
+                    if (response.content) {
+                        updatedMessages.push({
+                            role: "assistant" as const,
+                            content: response.content,
+                            metadata: null,
+                            tokenCount: null,
+                            finishReason: null,
+                            id: "",
+                            conversationId: "",
+                            createdAt: new Date(),
+                            updatedAt: new Date(),
+                        });
+                    }
+
+                    // Execute each tool call and add results to messages
+                    for (const toolCall of response.toolCalls) {
+                        try {
+                            const functionResult = await options.onFunctionCall(
+                                {
+                                    id: toolCall.id,
+                                    name: toolCall.function.name,
+                                    arguments: toolCall.function.arguments,
+                                }
+                            );
+
+                            if (functionResult) {
+                                // Add function result as a system message for context
+                                updatedMessages.push({
+                                    role: "system" as const,
+                                    content: functionResult,
+                                    metadata: null,
+                                    tokenCount: null,
+                                    finishReason: null,
+                                    id: "",
+                                    conversationId: "",
+                                    createdAt: new Date(),
+                                    updatedAt: new Date(),
+                                });
+                            }
+                        } catch (error) {
+                            console.error(
+                                "Function call execution error:",
+                                error
+                            );
+                        }
+                    }
+
+                    // Now generate the AI's actual response using the function results as context
+                    const finalResponse =
+                        await this.generateCompletion(updatedMessages);
+                    fullResponse = finalResponse.content;
+                } else if (response.content) {
+                    // No tool calls, just use the content
+                    fullResponse = response.content;
+                }
+            } else {
+                // No tools, use regular completion
+                const completionResponse =
+                    await this.generateCompletion(messages);
+                fullResponse = completionResponse.content;
+            }
+
+            if (options.onComplete) {
+                options.onComplete(fullResponse);
+            }
+
+            return fullResponse;
+        } catch (error) {
+            const err =
+                error instanceof Error ? error : new Error("Unknown LLM error");
+            if (options.onError) {
+                options.onError(err);
+            }
+            throw err;
+        }
+    }
+
+    /**
      * Generate streaming response (simulated streaming using non-streaming API)
      */
     async *streamCompletion(
