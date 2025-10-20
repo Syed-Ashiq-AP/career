@@ -10,17 +10,18 @@ datasource db {
 }
 
 model User {
-  id            String         @id @map("_id")
-  name          String
-  email         String
-  emailVerified Boolean        @default(false)
-  image         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  chats         Chat[]
-  conversations Conversation[]
+  id              String         @id @map("_id")
+  name            String
+  email           String
+  emailVerified   Boolean        @default(false)
+  image           String?
+  hasSeenCheckout Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now()) @updatedAt
+  sessions        Session[]
+  accounts        Account[]
+  chats           Chat[]
+  conversations   Conversation[]
 
   @@unique([email])
   @@map("user")

@@ -1,9 +1,69 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import * as React from "react";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+
 import { motion } from "motion/react";
+
 import { cn } from "@/lib/utils";
 
+function Tabs({
+    className,
+    ...props
+}: React.ComponentProps<typeof TabsPrimitive.Root>) {
+    return (
+        <TabsPrimitive.Root
+            data-slot="tabs"
+            className={cn("flex flex-col gap-2", className)}
+            {...props}
+        />
+    );
+}
+
+function TabsList({
+    className,
+    ...props
+}: React.ComponentProps<typeof TabsPrimitive.List>) {
+    return (
+        <TabsPrimitive.List
+            data-slot="tabs-list"
+            className={cn(
+                "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]",
+                className
+            )}
+            {...props}
+        />
+    );
+}
+
+function TabsTrigger({
+    className,
+    ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+    return (
+        <TabsPrimitive.Trigger
+            data-slot="tabs-trigger"
+            className={cn(
+                "data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                className
+            )}
+            {...props}
+        />
+    );
+}
+
+function TabsContent({
+    className,
+    ...props
+}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+    return (
+        <TabsPrimitive.Content
+            data-slot="tabs-content"
+            className={cn("flex-1 outline-none", className)}
+            {...props}
+        />
+    );
+}
 export type Tab = {
     title: string;
     value: string;
@@ -11,106 +71,7 @@ export type Tab = {
     content?: string | React.ReactNode | any;
 };
 
-export const Tabs = ({
-    id,
-    tabs: propTabs,
-    containerClassName,
-    activeTabClassName,
-    tabClassName,
-    contentClassName,
-    forceUpdateKey,
-    query,
-}: {
-    id: string;
-    tabs: Tab[];
-    containerClassName?: string;
-    activeTabClassName?: string;
-    tabClassName?: string;
-    contentClassName?: string;
-    forceUpdateKey?: number | string;
-    query: string;
-}) => {
-    const [active, setActive] = useState<Tab>(propTabs[0]);
-    const [tabs, setTabs] = useState<Tab[]>(propTabs);
-
-    const [contentHash, setContentHash] = useState(0);
-    const [prevForceUpdateKey, setPrevForceUpdateKey] =
-        useState(forceUpdateKey);
-
-    useEffect(() => {
-        if (prevForceUpdateKey !== forceUpdateKey) {
-            setTabs(propTabs);
-            setPrevForceUpdateKey(forceUpdateKey);
-            setContentHash((prev) => prev + 1);
-        }
-    }, [forceUpdateKey, prevForceUpdateKey, propTabs]);
-
-    const moveSelectedTabToTop = (idx: number) => {
-        const selectedTab = tabs[idx];
-        setActive(selectedTab);
-    };
-
-    return (
-        <>
-            <div className="sticky top-0 z-15 w-full bg-background/95  backdrop-blur supports-[backdrop-filter]:bg-background/60 p-2 rounded-b-xl">
-                <p className=" capitalize text-lg font-semibold mb-4 w-8/12 text-center lg:text-left lg:w-full truncate mx-auto">
-                    {query}
-                </p>
-                <div
-                    className={cn(
-                        "flex flex-row items-center justify-start [perspective:1000px] relative overflow-auto sm:overflow-visible no-visible-scrollbar max-w-full w-full",
-                        containerClassName
-                    )}
-                >
-                    {tabs.map((tab, idx) => (
-                        <button
-                            key={tab.title}
-                            onClick={() => {
-                                setActive(tab);
-                                moveSelectedTabToTop(idx);
-                            }}
-                            className={cn(
-                                "relative px-4 py-2 rounded-full",
-                                tabClassName
-                            )}
-                            style={{
-                                transformStyle: "preserve-3d",
-                            }}
-                        >
-                            {active.value === tab.value && (
-                                <motion.div
-                                    layoutId={"clickedbutton" + id}
-                                    transition={{
-                                        type: "spring",
-                                        bounce: 0.3,
-                                        duration: 0.6,
-                                    }}
-                                    className={cn(
-                                        "absolute inset-0 bg-gray-200 dark:bg-zinc-800 rounded-full ",
-                                        activeTabClassName
-                                    )}
-                                />
-                            )}
-
-                            <span className="relative block text-black dark:text-white">
-                                {tab.title}
-                            </span>
-                        </button>
-                    ))}
-                </div>
-            </div>
-            <FadeInDiv
-                id={id}
-                active={active}
-                tabs={tabs}
-                key={`${active.value}-${tabs.length}-${contentHash}`}
-                className={cn("mt-12 ", contentClassName)}
-            />
-        </>
-    );
-};
-
-export const FadeInDiv = ({
+const FadeInDiv = ({
     id,
     className,
     active,
@@ -122,15 +83,15 @@ export const FadeInDiv = ({
     active: Tab;
     tabs: Tab[];
 }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const activeTabRef = useRef<HTMLDivElement>(null);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const activeTabRef = React.useRef<HTMLDivElement>(null);
 
     const activeTabValue = active.value;
 
     const currentActiveTab =
         tabs.find((tab) => tab.value === active.value) || active;
 
-    useEffect(() => {
+    React.useEffect(() => {
         const updateHeight = () => {
             if (activeTabRef.current && containerRef.current) {
                 const activeTabHeight = activeTabRef.current.scrollHeight;
@@ -181,3 +142,5 @@ export const FadeInDiv = ({
         </div>
     );
 };
+
+export { Tabs, TabsList, TabsTrigger, TabsContent, FadeInDiv };

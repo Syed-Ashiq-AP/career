@@ -248,7 +248,7 @@ export const EvaluateContextProvider = ({
     const enquireCareer = useCallback(
         async (career: string) => {
             const id = await setUpConversation(career);
-            router.push(`/ai/${id}`);
+            router.push(`chat/${id}`);
         },
         [setUpConversation, router]
     );

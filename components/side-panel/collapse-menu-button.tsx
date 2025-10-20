@@ -144,6 +144,7 @@ export function CollapseMenuButton({
                                     isSubmenuActive ? "secondary" : "ghost"
                                 }
                                 className="w-full justify-start h-10 mb-1"
+                                suppressHydrationWarning
                             >
                                 <div className="w-full items-center flex justify-between">
                                     <div className="flex items-center">

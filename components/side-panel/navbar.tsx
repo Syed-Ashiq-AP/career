@@ -1,4 +1,3 @@
-import { ModeToggle } from "@/components/mode-toggle";
 import { SheetMenu } from "@/components/side-panel/sheet-menu";
 
 export function Navbar() {

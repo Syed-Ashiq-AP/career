@@ -1,9 +1,6 @@
 import OpenAI from "openai";
 import { ConversationMessage } from "@/lib/generated/prisma";
-import type {
-    ChatCompletionMessageParam,
-    ChatCompletionMessageToolCall,
-} from "openai/resources/chat/completions";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 interface LLMConfig {
     apiKey: string;
@@ -12,6 +9,33 @@ interface LLMConfig {
     model: string;
     maxTokens?: number;
     temperature?: number;
+}
+
+interface PerplexityResponse {
+    choices: Array<{
+        message: {
+            content: string;
+            role: string;
+        };
+        finish_reason: string;
+    }>;
+    usage: {
+        total_tokens: number;
+    };
+    model: string;
+    citations?: string[];
+    search_results?: Array<{
+        title: string;
+        url: string;
+        date?: string;
+    }>;
+    videos?: Array<{
+        url: string;
+        thumbnail_url: string;
+        thumbnail_width: number;
+        thumbnail_height: number;
+        duration: number;
+    }>;
 }
 
 interface StreamingOptions {
@@ -26,7 +50,7 @@ interface StreamingOptions {
 }
 
 export class LLMService {
-    private openai: OpenAI;
+    private client: OpenAI;
     private config: LLMConfig;
     private currentKeyIndex: number = 0;
     private apiKeys: string[];
@@ -41,9 +65,9 @@ export class LLMService {
         // Parse multiple API keys if provided
         this.apiKeys = config.apiKeys || [config.apiKey];
 
-        this.openai = new OpenAI({
+        this.client = new OpenAI({
             apiKey: this.apiKeys[0],
-            baseURL: config.baseUrl || "https://api.openai.com/v1",
+            baseURL: config.baseUrl || "https://api.perplexity.ai",
         });
     }
 
@@ -52,9 +76,9 @@ export class LLMService {
         const newApiKey = this.apiKeys[this.currentKeyIndex];
 
         // Create a new OpenAI instance with the rotated key
-        this.openai = new OpenAI({
+        this.client = new OpenAI({
             apiKey: newApiKey,
-            baseURL: this.config.baseUrl || "https://api.openai.com/v1",
+            baseURL: this.config.baseUrl || "https://api.perplexity.ai",
         });
 
         console.log(`Rotated to API key index: ${this.currentKeyIndex}`);
@@ -95,23 +119,59 @@ export class LLMService {
     }
 
     /**
-     * Convert ConversationMessage[] to OpenAI format
+     * Convert ConversationMessage[] to OpenAI format with proper ordering for Perplexity
      */
     private formatMessages(
         messages: ConversationMessage[]
     ): ChatCompletionMessageParam[] {
-        return messages.map((msg) => {
-            switch (msg.role) {
-                case "system":
-                    return { role: "system" as const, content: msg.content };
-                case "user":
-                    return { role: "user" as const, content: msg.content };
-                case "assistant":
-                    return { role: "assistant" as const, content: msg.content };
-                default:
-                    return { role: "user" as const, content: msg.content };
+        // Separate system messages from user/assistant messages
+        const systemMessages = messages.filter((msg) => msg.role === "system");
+        const conversationMessages = messages.filter(
+            (msg) => msg.role !== "system"
+        );
+
+        // Combine all system messages into one to avoid multiple system messages
+        const combinedSystemContent = systemMessages
+            .map((msg) => msg.content)
+            .join("\n\n");
+
+        const formattedMessages: ChatCompletionMessageParam[] = [];
+
+        // Add combined system message if any system messages exist
+        if (systemMessages.length > 0) {
+            formattedMessages.push({
+                role: "system" as const,
+                content: combinedSystemContent,
+            });
+        }
+
+        // Ensure proper alternation of user/assistant messages
+        const validConversationMessages: ChatCompletionMessageParam[] = [];
+        let lastRole: string | null = null;
+
+        for (const msg of conversationMessages) {
+            const currentRole = msg.role === "assistant" ? "assistant" : "user";
+
+            // Skip consecutive messages of the same role (except the first one)
+            if (lastRole === currentRole) {
+                console.warn(
+                    `Skipping consecutive ${currentRole} message to maintain alternation`
+                );
+                continue;
             }
-        });
+
+            validConversationMessages.push({
+                role: currentRole as "user" | "assistant",
+                content: msg.content,
+            });
+
+            lastRole = currentRole;
+        }
+
+        // Add the valid conversation messages
+        formattedMessages.push(...validConversationMessages);
+
+        return formattedMessages;
     }
 
     /**
@@ -222,125 +282,48 @@ export class LLMService {
     }
 
     /**
-     * Generate streaming response (simulated streaming using non-streaming API)
+     * Generate streaming response using Perplexity's native streaming
      */
     async *streamCompletion(
         messages: ConversationMessage[],
-        options: StreamingOptions = {},
-        tools?: Array<{
-            name: string;
-            description: string;
-            parameters: Record<string, unknown>;
-        }>
+        options: StreamingOptions = {}
     ): AsyncGenerator<string, string, unknown> {
         try {
-            let response;
             let fullResponse = "";
 
-            // If tools are provided, use the function calling method
-            if (tools && tools.length > 0) {
-                response = await this.generateWithFunctions(messages, tools);
+            // Use Perplexity's native streaming (no function calling needed)
+            const formattedMessages = this.formatMessages(messages);
 
-                // Handle tool calls if present
-                if (
-                    response.toolCalls &&
-                    response.toolCalls.length > 0 &&
-                    options.onFunctionCall
-                ) {
-                    // Create updated messages array with function results
-                    const updatedMessages = [...messages];
+            const stream = await this.makeRequestWithRetry(async () => {
+                return this.client.chat.completions.create({
+                    model: this.config.model,
+                    messages: formattedMessages,
+                    max_tokens: this.config.maxTokens,
+                    temperature: this.config.temperature,
+                    stream: true, // Enable native streaming
+                    // Perplexity-specific parameters for media
+                    ...({
+                        return_images: true,
+                        return_related_questions: false,
+                        search_domain_filter: [
+                            "youtube.com",
+                            "vimeo.com",
+                            "dailymotion.com",
+                        ],
+                        search_recency_filter: "month",
+                    } as Record<string, unknown>),
+                });
+            });
 
-                    // Add the assistant's tool call request (if there was content)
-                    if (response.content) {
-                        updatedMessages.push({
-                            role: "assistant" as const,
-                            content: response.content,
-                            metadata: null,
-                            tokenCount: null,
-                            finishReason: null,
-                            id: "",
-                            conversationId: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date(),
-                        });
-                    }
-
-                    // Execute each tool call and add results to messages
-                    for (const toolCall of response.toolCalls) {
-                        try {
-                            const functionResult = await options.onFunctionCall(
-                                {
-                                    id: toolCall.id,
-                                    name: toolCall.function.name,
-                                    arguments: toolCall.function.arguments,
-                                }
-                            );
-
-                            if (functionResult) {
-                                // Add function result as a system message for context
-                                updatedMessages.push({
-                                    role: "system" as const,
-                                    content: functionResult,
-                                    metadata: null,
-                                    tokenCount: null,
-                                    finishReason: null,
-                                    id: "",
-                                    conversationId: "",
-                                    createdAt: new Date(),
-                                    updatedAt: new Date(),
-                                });
-                            }
-                        } catch (error) {
-                            console.error(
-                                "Function call execution error:",
-                                error
-                            );
-                        }
-                    }
-
-                    // Now generate the AI's actual response using the function results as context
-                    const finalResponse =
-                        await this.generateCompletion(updatedMessages);
-                    fullResponse = finalResponse.content;
-
-                    // Stream the AI's response
-                    const chunks = this.chunkText(finalResponse.content, 10);
-                    for (const chunk of chunks) {
-                        if (options.onToken) {
-                            options.onToken(chunk);
-                        }
-                        yield chunk;
-                        // Add small delay to simulate streaming
-                        await new Promise((resolve) => setTimeout(resolve, 10));
-                    }
-                } else if (response.content) {
-                    // No tool calls, just stream the content
-                    fullResponse = response.content;
-                    const chunks = this.chunkText(response.content, 10);
-                    for (const chunk of chunks) {
-                        if (options.onToken) {
-                            options.onToken(chunk);
-                        }
-                        yield chunk;
-                        // Add small delay to simulate streaming
-                        await new Promise((resolve) => setTimeout(resolve, 10));
-                    }
-                }
-            } else {
-                // No tools, use regular completion
-                const completionResponse =
-                    await this.generateCompletion(messages);
-                fullResponse = completionResponse.content;
-
-                // Simulate streaming by breaking response into chunks
-                const chunks = this.chunkText(completionResponse.content, 10);
-                for (const chunk of chunks) {
+            // Process the real stream from Perplexity
+            for await (const chunk of stream) {
+                const content = chunk.choices?.[0]?.delta?.content;
+                if (content) {
+                    fullResponse += content;
                     if (options.onToken) {
-                        options.onToken(chunk);
+                        options.onToken(content);
                     }
-                    yield chunk;
-                    // Add small delay to simulate streaming
-                    await new Promise((resolve) => setTimeout(resolve, 10));
+                    yield content;
                 }
             }
 
@@ -360,51 +343,70 @@ export class LLMService {
     }
 
     /**
-     * Helper method to break text into chunks for simulated streaming
-     */
-    private chunkText(text: string, chunkSize: number = 10): string[] {
-        const chunks: string[] = [];
-        for (let i = 0; i < text.length; i += chunkSize) {
-            chunks.push(text.slice(i, i + chunkSize));
-        }
-        return chunks;
-    }
-
-    /**
-     * Generate non-streaming response
+     * Generate non-streaming response (updated for Perplexity)
      */
     async generateCompletion(messages: ConversationMessage[]): Promise<{
         content: string;
         tokenCount?: number;
         model: string;
         finishReason?: string;
+        citations?: string[];
+        searchResults?: Array<{
+            title: string;
+            url: string;
+            date?: string;
+        }>;
+        videos?: Array<{
+            url: string;
+            thumbnail_url: string;
+            thumbnail_width: number;
+            thumbnail_height: number;
+            duration: number;
+        }>;
     }> {
         return this.makeRequestWithRetry(async () => {
             const formattedMessages = this.formatMessages(messages);
 
-            const response = await this.openai.chat.completions.create({
+            const response = await this.client.chat.completions.create({
                 model: this.config.model,
                 messages: formattedMessages,
                 max_tokens: this.config.maxTokens,
                 temperature: this.config.temperature,
+                // Perplexity-specific parameters for media
+                ...({
+                    return_images: true,
+                    return_related_questions: false,
+                    search_domain_filter: [
+                        "youtube.com",
+                        "vimeo.com",
+                        "dailymotion.com",
+                    ],
+                    search_recency_filter: "month",
+                } as Record<string, unknown>),
             });
 
             const choice = response.choices[0];
+            const responseData = response as PerplexityResponse;
 
             return {
                 content: choice.message.content || "",
                 tokenCount: response.usage?.total_tokens,
                 model: response.model,
                 finishReason: choice.finish_reason || undefined,
+                citations: responseData.citations,
+                searchResults: responseData.search_results,
+                videos: responseData.videos,
             };
         });
     }
 
     /**
-     * Generate response with function calling capability (using newer tools API)
+     * Generate response with function calling capability
+     * Note: Perplexity has limited function calling support, so we'll simplify this
      */
     async generateWithFunctions(
         messages: ConversationMessage[],
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         tools: Array<{
             name: string;
             description: string;
@@ -423,61 +425,41 @@ export class LLMService {
         tokenCount?: number;
         model: string;
         finishReason?: string;
+        citations?: string[];
     }> {
         return this.makeRequestWithRetry(async () => {
             const formattedMessages = this.formatMessages(messages);
 
-            const response = await this.openai.chat.completions.create({
+            // For Perplexity, we'll use basic completion since function calling is limited
+            // The search capability is built-in, so we don't need explicit tools
+            const response = await this.client.chat.completions.create({
                 model: this.config.model,
                 messages: formattedMessages,
-                tools: tools.map((tool) => ({
-                    type: "function" as const,
-                    function: {
-                        name: tool.name,
-                        description: tool.description,
-                        parameters: tool.parameters as Record<string, unknown>,
-                    },
-                })),
                 max_tokens: this.config.maxTokens,
                 temperature: this.config.temperature,
             });
 
             const choice = response.choices[0];
+            const responseData = response as PerplexityResponse;
 
             return {
                 content: choice.message.content || undefined,
-                toolCalls:
-                    choice.message.tool_calls
-                        ?.filter((call) => call.type === "function")
-                        .map((call) => {
-                            const functionCall =
-                                call as ChatCompletionMessageToolCall & {
-                                    function: {
-                                        name: string;
-                                        arguments: string;
-                                    };
-                                };
-                            return {
-                                id: call.id,
-                                type: call.type,
-                                function: {
-                                    name: functionCall.function.name,
-                                    arguments: functionCall.function.arguments,
-                                },
-                            };
-                        }) || undefined,
+                toolCalls: undefined, // Perplexity handles search internally
                 tokenCount: response.usage?.total_tokens,
                 model: response.model,
                 finishReason: choice.finish_reason || undefined,
+                citations: responseData.citations,
             };
         });
     }
 }
 
 export function createLLMService(): LLMService {
-    const apiKeyString = process.env.A4F_API_KEY || "";
+    const apiKeyString = process.env.PERPLEXITY_API_KEY || "";
     if (!apiKeyString) {
-        throw new Error("API key not found");
+        throw new Error(
+            "PERPLEXITY_API_KEY not found in environment variables"
+        );
     }
 
     // Parse multiple API keys from comma-separated string
@@ -489,12 +471,14 @@ export function createLLMService(): LLMService {
     const config = {
         apiKey: apiKeys[0], // Primary key
         apiKeys: apiKeys, // All keys for rotation
-        baseUrl: "https://api.a4f.co/v1",
-        model: "provider-3/gpt-4o-mini",
+        baseUrl: "https://api.perplexity.ai",
+        model: "sonar", // Correct Perplexity model name for search
         maxTokens: 4000,
         temperature: 0.7,
     } as LLMConfig;
 
-    console.log(`Initialized LLM service with ${apiKeys.length} API keys`);
+    console.log(
+        `Initialized Perplexity LLM service with ${apiKeys.length} API keys`
+    );
     return new LLMService(config);
 }

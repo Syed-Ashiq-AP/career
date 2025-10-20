@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useTransition } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-    MonitorIcon,
     Paperclip,
     SendIcon,
     XIcon,
@@ -148,7 +147,7 @@ Textarea.displayName = "Textarea";
 export default function ChatBot() {
     const [value, setValue] = useState("");
     const [attachments, setAttachments] = useState<string[]>([]);
-    const [isPending, startTransition] = useTransition();
+    // const [isPending, startTransition] = useTransition();
     const [activeSuggestion, setActiveSuggestion] = useState<number>(-1);
     const [showCommandPalette, setShowCommandPalette] = useState(false);
     const [recentCommand, setRecentCommand] = useState<string | null>(null);
@@ -242,14 +241,8 @@ export default function ChatBot() {
             prefix: "/news",
         },
     ];
-    const {
-        messages,
-        isStreaming,
-        isLoading,
-        error,
-        sendMessageStream,
-        cancel,
-    } = UseChatbot();
+    const { messages, isStreaming, isLoading, sendMessageStream } =
+        UseChatbot();
 
     useEffect(() => {
         if (value.startsWith("/") && !value.includes(" ")) {
@@ -356,7 +349,8 @@ export default function ChatBot() {
     };
 
     const handleAttachFile = () => {
-        const mockFileName = `file-${Math.floor(Math.random() * 1000)}.pdf`;
+        const timestamp = Date.now();
+        const mockFileName = `file-${timestamp}.pdf`;
         setAttachments((prev) => [...prev, mockFileName]);
     };
 
@@ -411,7 +405,18 @@ export default function ChatBot() {
                             {messages.map((msg, i) => {
                                 if (msg.role !== "user") return null;
                                 const response = assistantContent(i + 1);
-                                const metaData = msg.metadata as Metadata;
+
+                                // Find the corresponding assistant message that has the metadata
+                                const assistantMsg = messages.find(
+                                    (m, idx) =>
+                                        idx > i && m.role === "assistant"
+                                );
+
+                                // Use assistant message metadata if available, otherwise user message metadata
+                                const metaData =
+                                    (assistantMsg?.metadata as Metadata) ||
+                                    (msg.metadata as Metadata);
+
                                 const summaryTab = {
                                     type: "summary" as const,
                                     title: "Summary",
@@ -424,6 +429,7 @@ export default function ChatBot() {
                                         ...(metaData?.tabs || []),
                                     ],
                                 };
+
                                 return (
                                     <ChatBox
                                         key={msg.id}
@@ -806,10 +812,10 @@ function TypingDots() {
     );
 }
 
-interface ActionButtonProps {
-    icon: React.ReactNode;
-    label: string;
-}
+// interface ActionButtonProps {
+//     icon: React.ReactNode;
+//     label: string;
+// }
 
 const rippleKeyframes = `
 @keyframes ripple {

@@ -252,7 +252,7 @@ export const ChatBotProvider = ({
     }, []);
 
     const onConversationIdChange = useCallback((convoId: string) => {
-        window.history.replaceState(null, "", `/ai/${convoId}`);
+        window.history.replaceState(null, "", `/chat/${convoId}`);
     }, []);
 
     useEffect(() => {
@@ -582,12 +582,12 @@ Please search for the most current information to provide accurate and up-to-dat
                             icon: MessageCircleMore,
                             submenus: [
                                 {
-                                    href: "/ai",
+                                    href: "/",
                                     icon: SquarePen,
                                     label: "New Chat",
                                 },
                                 ...state.conversations.map((chat) => ({
-                                    href: `/ai/${chat.id}`,
+                                    href: `/chat/${chat.id}`,
                                     label: chat.title,
                                 })),
                             ],

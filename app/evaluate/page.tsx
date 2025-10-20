@@ -1,4 +1,5 @@
 import AiView from "@/components/page-layout/evaluate/ai-view";
+import ProductDisplay from "@/components/page-layout/evaluate/product-display";
 import { EvaluateContextProvider } from "@/components/providers/career-evaluation-provider";
 import { ChatBotProvider } from "@/hooks/use-chat";
 import { auth } from "@/lib/auth";
@@ -13,7 +14,9 @@ const Page = async () => {
     return (
         <ChatBotProvider userId={session?.user.id}>
             <EvaluateContextProvider>
-                <AiView />
+                <ProductDisplay session={session}>
+                    <AiView />
+                </ProductDisplay>
             </EvaluateContextProvider>
         </ChatBotProvider>
     );
