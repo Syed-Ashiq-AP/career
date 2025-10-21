@@ -454,12 +454,25 @@ export class LLMService {
     }
 }
 
-export function createLLMService(): LLMService {
-    const apiKeyString = process.env.PERPLEXITY_API_KEY || "";
+export function createLLMService(
+    customConfig?: Partial<LLMConfig>
+): LLMService {
+    let apiKeyString = process.env.PERPLEXITY_API_KEY || "";
+    let baseUrl = "https://api.perplexity.ai";
+    let model = "sonar";
+
+    if (customConfig?.baseUrl) {
+        baseUrl = customConfig.baseUrl;
+    }
+    if (customConfig?.apiKey) {
+        apiKeyString = customConfig.apiKey;
+    }
+    if (customConfig?.model) {
+        model = customConfig.model;
+    }
+
     if (!apiKeyString) {
-        throw new Error(
-            "PERPLEXITY_API_KEY not found in environment variables"
-        );
+        throw new Error("API key not found in environment variables");
     }
 
     // Parse multiple API keys from comma-separated string
@@ -468,17 +481,17 @@ export function createLLMService(): LLMService {
         .map((key) => key.trim())
         .filter((key) => key.length > 0);
 
-    const config = {
-        apiKey: apiKeys[0], // Primary key
-        apiKeys: apiKeys, // All keys for rotation
-        baseUrl: "https://api.perplexity.ai",
-        model: "sonar", // Correct Perplexity model name for search
-        maxTokens: 4000,
-        temperature: 0.7,
-    } as LLMConfig;
+    const config: LLMConfig = {
+        apiKey: apiKeys[0],
+        apiKeys: apiKeys,
+        baseUrl,
+        model,
+        maxTokens: customConfig?.maxTokens ?? 4000,
+        temperature: customConfig?.temperature ?? 0.7,
+    };
 
     console.log(
-        `Initialized Perplexity LLM service with ${apiKeys.length} API keys`
+        `Initialized LLM service with baseUrl: ${baseUrl}, model: ${model}, API keys: ${apiKeys.length}`
     );
     return new LLMService(config);
 }

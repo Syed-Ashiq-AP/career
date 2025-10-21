@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createLLMService } from "../../../lib/ai/llm-service";
+import { config } from "dotenv";
+config();
 import dataset from "../../../data/dataset.json";
 
 export const POST = async (req: Request) => {
@@ -21,7 +23,11 @@ export const POST = async (req: Request) => {
             : `This is the first question. Please generate an appropriate starting question.`;
 
     try {
-        const llmService = createLLMService();
+        const llmService = createLLMService({
+            baseUrl: "https://openrouter.ai/api/v1",
+            apiKey: process.env.OPEN_ROUTER,
+            model: "openai/gpt-oss-20b:free",
+        });
 
         const messages = [
             {

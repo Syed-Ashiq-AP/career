@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createLLMService } from "../../../../lib/ai/llm-service";
+import { config } from "dotenv";
+config();
 import dataset from "../../../../data/dataset.json";
 
 interface CareerOption {
@@ -46,7 +48,11 @@ export const POST = async (req: Request) => {
     const userPrompt = `Based on the user's answers: ${JSON.stringify(answers)}, analyze their responses and provide career recommendations.`;
 
     try {
-        const llmService = createLLMService();
+        const llmService = createLLMService({
+            baseUrl: "https://openrouter.ai/api/v1",
+            apiKey: process.env.OPEN_ROUTER,
+            model: "openai/gpt-oss-20b:free",
+        });
 
         const messages = [
             {
