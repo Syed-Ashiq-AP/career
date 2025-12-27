@@ -75,7 +75,7 @@ export default function Page() {
             });
             if (!data) return;
             const { items } = data.result;
-            const orders = items.map((item) => item.productId);
+            const orders = items.map((item: any) => item.productId);
             setOrderIDs(orders);
         };
         fetch();

@@ -24,7 +24,7 @@ const ProductDisplay = ({ children, session }: Props) => {
             });
             if (!data) return;
             const { items } = data.result;
-            const orders = items.map((item) => item.productId);
+            const orders = items.map((item: any) => item.productId);
             if (orders.length === 0) setStatus(-1);
             else setStatus(1);
         };

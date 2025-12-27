@@ -25,7 +25,7 @@ const Orders = () => {
             });
             if (!data) return;
             const { items } = data.result;
-            const orders = items.map((item) => ({
+            const orders = items.map((item: any) => ({
                 id: item.id,
                 name: item.product.name,
                 description: item.product.description,
