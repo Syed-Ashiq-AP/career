@@ -1,10 +1,11 @@
 import { convertToModelMessages, streamText, UIMessage } from "ai";
 import { perplexity } from "@ai-sdk/perplexity";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req:Request){
-    const {messages} :{messages:UIMessage[]} = await req.json()
+    try {
+        const {messages} :{messages:UIMessage[]} = await req.json()
 
     const modelMessages = await convertToModelMessages(messages);
     
@@ -23,6 +24,7 @@ export async function POST(req:Request){
 
     const result = streamText({
         model:perplexity("sonar"),
+        abortSignal: req.signal,
         system:`You are an AI career consultant specializing in the Indian job market. You have access to real-time information through your search capabilities, which allows you to provide current and accurate career advice.
 
                 **Response Guidelines:**
@@ -47,9 +49,15 @@ export async function POST(req:Request){
                 - Sources will be provided separately for user reference
 
                 Provide detailed, current, and actionable career advice based on the latest information available.`,
-        messages: filteredMessages
+        messages: filteredMessages,
     })
 
     return result.toUIMessageStreamResponse()
-
+    } catch (error) {
+        console.error('Chat API Error:', error);
+        return new Response(
+            JSON.stringify({ error: 'Failed to process chat request' }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+    }
 }

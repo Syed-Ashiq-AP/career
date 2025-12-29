@@ -22,10 +22,13 @@ const SUBMITTING_TIMEOUT = 200;
 const STREAMING_TIMEOUT = 2000;
 
 const ChatBot = () => {
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
+    onError: (error) => {
+      console.error("Chat error:", error);
+    },
   });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -64,11 +67,12 @@ const ChatBot = () => {
         {conversations.map((convo) => (
           <Conversation {...convo} key={convo.response.id} />
         ))}
-        {/* {messages.map((m, i) => (
-          <Streamdown key={i}>
-            {m.parts.find((part) => part.type === "text")?.text}
-          </Streamdown>
-        ))} */}
+        {error && (
+          <div className="max-w-5xl mx-auto my-4 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive">
+            <p className="font-semibold">Error:</p>
+            <p>{error.message}</p>
+          </div>
+        )}
       </div>
       <div className="sticky bottom-0 pb-5 bg-linear-to-t from-background  to-transparent ">
         <PromptInputProvider>
