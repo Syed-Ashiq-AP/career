@@ -1,0 +1,6 @@
+api/server.py
+api/__pycache__
+__pycache__
+*.pyc
+.env.local
+.env

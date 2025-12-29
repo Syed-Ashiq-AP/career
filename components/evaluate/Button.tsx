@@ -37,7 +37,7 @@ export const Button = ({
       {...props}
     >
       {imageLoading && (
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+        <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
       )}
       <span className={cn("relative z-10", imageLoading && "opacity-50")}>
         {children}

@@ -5,7 +5,7 @@ import { Button } from "@/components/evaluate/Button";
 import { PaginateButton } from "@/components/evaluate/PaginateButton";
 import { Careers } from "@/components/evaluate/Careers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface Question {
   id: number;

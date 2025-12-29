@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import CareerCard from "./career-card";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface UserAnswer {
   selected_option: string;

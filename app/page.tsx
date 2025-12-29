@@ -1,11 +1,6 @@
-"use client";
+import { ChatBot } from "@/components/ai/ChatBot";
+import React from "react";
 
-import { Survey } from "@/components/evaluate/Survey";
-
-export default function Home() {
-  return (
-    <main className="size-full flex items-center relative overflow-hidden">
-      <Survey />
-    </main>
-  );
+export default function page() {
+  return <ChatBot />;
 }
