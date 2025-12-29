@@ -16,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, UIMessage } from "ai";
 import { Conversation } from "./Conversation";
+import { Streamdown } from "streamdown";
 
 const SUBMITTING_TIMEOUT = 200;
 const STREAMING_TIMEOUT = 2000;
@@ -63,6 +64,11 @@ const ChatBot = () => {
         {conversations.map((convo) => (
           <Conversation {...convo} key={convo.response.id} />
         ))}
+        {/* {messages.map((m, i) => (
+          <Streamdown key={i}>
+            {m.parts.find((part) => part.type === "text")?.text}
+          </Streamdown>
+        ))} */}
       </div>
       <div className="sticky bottom-0 pb-5 bg-linear-to-t from-background  to-transparent ">
         <PromptInputProvider>
