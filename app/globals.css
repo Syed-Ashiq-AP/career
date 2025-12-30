@@ -46,10 +46,6 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-body {
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-}
-
 /* Custom animations */
 @keyframes fadeIn {
   from {
@@ -180,12 +176,9 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
 
   body,html{
-    @apply w-dvw h-dvh;
+    @apply w-dvw h-dvh bg-background text-foreground overflow-x-hidden;
   }
 }
 

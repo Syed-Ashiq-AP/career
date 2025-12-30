@@ -65,7 +65,7 @@ const ChatBot = () => {
         ))}
 
         {error && (
-          <div className="max-w-5xl mx-auto my-4 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive">
+          <div className="mx-auto my-4 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive">
             <p className="font-semibold">Error:</p>
             <p>{error.message}</p>
           </div>
