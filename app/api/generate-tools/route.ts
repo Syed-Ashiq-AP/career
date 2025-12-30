@@ -6,7 +6,7 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
-    const { query, toolType } = await req.json();
+    const { query, toolTypes } = await req.json(); // toolTypes: string[]
 
     const schemas: Record<string, any> = {
       sources: z.object({
@@ -84,17 +84,34 @@ export async function POST(req: Request) {
       companies: `List companies in India that hire for: ${query}. Include industry, roles, locations, and company size.`,
     };
 
-    if (!schemas[toolType]) {
-      return Response.json({ error: "Invalid tool type" }, { status: 400 });
+    if (!Array.isArray(toolTypes) || toolTypes.length === 0) {
+      return Response.json({ error: "No tool types provided" }, { status: 400 });
     }
 
-    const result = await generateObject({
-      model: perplexity("sonar"),
-      schema: schemas[toolType],
-      prompt: prompts[toolType],
-    });
+    // Run all tool generations in parallel
+    const results = await Promise.all(
+      toolTypes.map(async (toolType) => {
+        if (!schemas[toolType]) return [toolType, { error: "Invalid tool type" }];
+        try {
+          const result = await generateObject({
+            model: perplexity("sonar"),
+            schema: schemas[toolType],
+            prompt: prompts[toolType],
+          });
+          return [toolType, result.object];
+        } catch (err) {
+          return [toolType, { error: "Failed to generate data" }];
+        }
+      })
+    );
 
-    return Response.json(result.object);
+    // Build response object
+    const responseObj: Record<string, any> = {};
+    for (const [toolType, data] of results) {
+      responseObj[toolType] = data;
+    }
+
+    return Response.json(responseObj);
   } catch (error) {
     console.error("Generate Tools Error:", error);
     return Response.json(

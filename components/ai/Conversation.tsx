@@ -1,5 +1,5 @@
 import { UIMessage } from "ai";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Streamdown } from "streamdown";
 import {
@@ -20,24 +20,61 @@ export const Conversation = ({
   response: UIMessage;
 }) => {
   const userMessage = user.parts.find((part) => part.type === "text")?.text;
-  const responseMessage = response.parts.find(
-    (part) => part.type === "text"
-  )?.text;
+  const [tool_calls_string, ...responseMessage] =
+    response.parts.find((part) => part.type === "text")?.text?.split("\n") ??
+    [];
+  const [isEnriching, setIsEnriching] = useState(false);
 
-  // Extract tool calls from response
-  const toolCalls = response.parts.filter(
-    (part) => part.type === "dynamic-tool"
-  );
+  const [tools, setTools] = useState<Record<string, any>>({});
 
-  // Parse tool results
-  const tools: Record<string, any> = {};
-  toolCalls.forEach((toolCall: any) => {
-    if (toolCall.state === "output-available" && toolCall.output) {
-      tools[toolCall.toolName] = toolCall.output;
-    }
-  });
+  useEffect(() => {
+    const fetchTools = async () => {
+      const matches = /--start--(.*?)--end--/.exec(tool_calls_string);
+      if (!matches) {
+        setTools({});
+        return;
+      }
+      const capture = (matches[1] ?? "").replace(/\s/g, "").split(",");
+      const response = await fetch("/api/generate-tools", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toolTypes: capture, query: userMessage }),
+      });
 
-  const hasTools = Object.keys(tools).length > 0;
+      if (!response.ok) {
+        setTools({});
+        return;
+      }
+      const data = await response.json();
+
+      const toolTypeToName: Record<string, string> = {
+        sources: "provide_sources",
+        videos: "suggest_videos",
+        colleges: "list_colleges",
+        careers: "suggest_related_careers",
+        salary: "provide_salary_insights",
+        companies: "list_companies",
+      };
+      const toolsObj: Record<string, any> = {};
+      Object.entries(data)
+        .filter(([_, value]) => {
+          if (!value) return false;
+          if (typeof value === "object" && "error" in value) {
+            return !value.error;
+          }
+          return true;
+        })
+        .forEach(([type, value]) => {
+          const key = toolTypeToName[type] || type;
+          toolsObj[key] = value;
+        });
+      setTools(toolsObj);
+    };
+    setIsEnriching(true);
+    fetchTools().then(() => {
+      setIsEnriching(false);
+    });
+  }, [tool_calls_string, userMessage]);
 
   return (
     <div className="rounded-lg my-4 bg-card space-y-2 overflow-clip max-w-5xl mx-auto ">
@@ -84,10 +121,15 @@ export const Conversation = ({
             )}
           </TabsList>
         </div>
-
+        {isEnriching && (
+          <div className="mx-5 my-4 p-4 bg-accent/50 rounded-lg text-sm text-muted-foreground flex items-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+            Loading additional resources...
+          </div>
+        )}
         <TabsContent value="summary" className="py-2 px-4">
           <div className="markdown-content prose prose-sm max-w-none dark:prose-invert">
-            <Streamdown>{responseMessage}</Streamdown>
+            <Streamdown>{responseMessage.join("\n")}</Streamdown>
           </div>
         </TabsContent>
 
@@ -100,7 +142,7 @@ export const Conversation = ({
                   className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <ExternalLink className="w-5 h-5 mt-1 flex-shrink-0 text-primary" />
+                    <ExternalLink className="w-5 h-5 mt-1 shrink-0 text-primary" />
                     <div className="flex-1">
                       <a
                         href={source.url}
@@ -131,7 +173,7 @@ export const Conversation = ({
                   className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <Play className="w-5 h-5 mt-1 flex-shrink-0 text-primary" />
+                    <Play className="w-5 h-5 mt-1 shrink-0 text-primary" />
                     <div className="flex-1">
                       <a
                         href={video.url}
@@ -163,7 +205,7 @@ export const Conversation = ({
                   className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <GraduationCap className="w-5 h-5 mt-1 flex-shrink-0 text-primary" />
+                    <GraduationCap className="w-5 h-5 mt-1 shrink-0 text-primary" />
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{college.name}</h3>
                       <div className="text-sm text-muted-foreground mt-1">
@@ -214,7 +256,7 @@ export const Conversation = ({
                     className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <Briefcase className="w-5 h-5 mt-1 flex-shrink-0 text-primary" />
+                      <Briefcase className="w-5 h-5 mt-1 shrink-0 text-primary" />
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">
                           {career.title}
@@ -250,7 +292,7 @@ export const Conversation = ({
                     className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <DollarSign className="w-5 h-5 mt-1 flex-shrink-0 text-primary" />
+                      <DollarSign className="w-5 h-5 mt-1 shrink-0 text-primary" />
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <div>
@@ -306,7 +348,7 @@ export const Conversation = ({
                     className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <Building2 className="w-5 h-5 mt-1 flex-shrink-0 text-primary" />
+                      <Building2 className="w-5 h-5 mt-1 shrink-0 text-primary" />
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">
                           {company.name}
