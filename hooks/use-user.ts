@@ -3,8 +3,15 @@ import { UserContext } from "@/providers/user-provider";
 import { useCallback, useContext } from "react";
 
 export function useUserData() {
-    const { chatId, setChatId, user, conversations, messages } =
-        useContext(UserContext);
+    const {
+        isSubscribed,
+        chatId,
+        setChatId,
+        user,
+        conversations,
+        messages,
+        orders,
+    } = useContext(UserContext);
 
     const initiateConversation = useCallback(
         async (title: string) => {
@@ -66,5 +73,7 @@ export function useUserData() {
         messages,
         updateMessages,
         initiateConversation,
+        isSubscribed,
+        orders,
     };
 }

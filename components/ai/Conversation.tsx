@@ -143,7 +143,7 @@ export function Conversation({
     }, [status, response, setMetaData, tools, generatedTools]);
 
     return (
-        <div className="rounded-lg my-4 bg-card space-y-2 overflow-clip max-w-5xl mx-auto ">
+        <div className="rounded-lg my-4 bg-card space-y-2 overflow-clip max-w-5xl mx-5 lg:mx-auto  ">
             <Tabs defaultValue="summary">
                 <div className="bg-accent rounded-b-lg p-1 sticky top-0 shadow-lg z-10">
                     <div className="p-2 font-semibold">{userMessage}</div>

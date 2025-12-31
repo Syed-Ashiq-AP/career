@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { MenuIcon } from "lucide-react";
 
@@ -10,11 +12,14 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet";
 import Image from "next/image";
+import { useUserData } from "@/hooks/use-user";
+import { UserAvatar } from "@daveyplate/better-auth-ui";
 
 export function SheetMenu() {
+    const { user } = useUserData();
     return (
         <Sheet>
-            <SheetTrigger className="lg:hidden" asChild>
+            <SheetTrigger asChild>
                 <Button
                     className="h-8"
                     variant="outline"
@@ -25,7 +30,7 @@ export function SheetMenu() {
                 </Button>
             </SheetTrigger>
             <SheetContent
-                className="sm:w-72 px-3 h-full flex flex-col  overflow-auto"
+                className="sm:w-72 p-3 h-full flex flex-col  overflow-auto"
                 side="left"
             >
                 <SheetHeader>
@@ -45,7 +50,25 @@ export function SheetMenu() {
                         </Link>
                     </Button>
                 </SheetHeader>
-                <Menu isOpen />
+                <div className="h-full">
+                    <Menu isOpen />
+                </div>
+                {user && (
+                    <Button
+                        variant={"outline"}
+                        className="p-2 h-auto font-normal"
+                    >
+                        <Link href={"/account"} className="flex space-x-2">
+                            <UserAvatar className="mx-auto" />
+                            <div className=" text-left">
+                                <p className="font-medium">{user.name}</p>
+                                <span className="text-sm text-foreground">
+                                    {user.email}
+                                </span>
+                            </div>
+                        </Link>
+                    </Button>
+                )}
             </SheetContent>
         </Sheet>
     );

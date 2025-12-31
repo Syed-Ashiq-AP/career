@@ -1,12 +1,12 @@
 import { ChatBot } from "@/components/ai/ChatBot";
-import { Sidebar } from "@/components/side-panel/sidebar";
+import { Navbar } from "@/components/side-panel/navbar";
 import React from "react";
 
 export default function page() {
     return (
-        <div>
-            <Sidebar />
+        <main className="flex flex-col overflow-hidden size-full">
+            <Navbar />
             <ChatBot />
-        </div>
+        </main>
     );
 }

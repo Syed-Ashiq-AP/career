@@ -351,7 +351,7 @@ export const Survey = () => {
 
     if (loading && !currentQuestion) {
         return (
-            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-sm sm:w-md">
+            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-sm sm:w-md mx-2 md:mx-auto">
                 <p className="text-center">Loading survey...</p>
             </div>
         );
@@ -359,7 +359,7 @@ export const Survey = () => {
 
     if (error) {
         return (
-            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-sm sm:w-md">
+            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-sm sm:w-md mx-auto">
                 <p className="text-center text-destructive">{error}</p>
                 <button
                     onClick={startSurvey}
@@ -389,7 +389,7 @@ export const Survey = () => {
                 show={questionHistory.length > 0}
                 onClick={handlePrevious}
             />
-            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-sm sm:w-md">
+            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-sm sm:w-md mx-2 md:mx-auto">
                 <div className="p-2 rounded bg-accent w-fit text-sm">
                     Q{questionHistory.length + 1}
                 </div>

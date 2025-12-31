@@ -101,8 +101,8 @@ const ChatBot = () => {
     );
 
     return (
-        <div className="flex flex-col items-stretch">
-            <div className="pb-10">
+        <div className="flex flex-col items-stretch flex-1 overflow-y-auto">
+            <div className="pb-40">
                 {conversations.map((convo) => (
                     <Conversation
                         status={status}
@@ -119,7 +119,7 @@ const ChatBot = () => {
                     </div>
                 )}
             </div>
-            <div className="sticky bottom-0 pb-5 bg-linear-to-t from-background  to-transparent ">
+            <div className="fixed left-0 right-0 bottom-0 p-5 bg-linear-to-t from-background  to-transparent ">
                 <PromptInputProvider>
                     <PromptInput
                         globalDrop

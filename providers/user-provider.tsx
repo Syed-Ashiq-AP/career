@@ -2,6 +2,7 @@ import { authClient } from "@/lib/auth-client";
 import { Chat, Message } from "@/lib/generated/prisma/client";
 import { AIMessage } from "@/lib/UIMessage";
 import { User } from "better-auth";
+import { usePathname, useRouter } from "next/navigation";
 import {
     createContext,
     Dispatch,
@@ -25,6 +26,8 @@ export type UserContextType = {
     chatId: RefObject<string | null>;
     setChatId: (id: string) => void;
     messages: AIMessage[];
+    isSubscribed: RefObject<boolean>;
+    orders: Order[];
 };
 
 export type UserProviderProps = {
@@ -32,9 +35,14 @@ export type UserProviderProps = {
     id: string | null;
 };
 
+export type Order = { id: string; name: string; description: string | null };
+
 export const UserContext = createContext({} as unknown as UserContextType);
 
 export const UserProvider = ({ children, id }: UserProviderProps) => {
+    const router = useRouter();
+    const pathname = usePathname();
+
     const { data: session } = authClient.useSession();
     const [conversations, setConversations] = useState<Chat[]>([]);
     const [messages, setMessages] = useState<AIMessage[]>([]);
@@ -42,6 +50,11 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
         null
     );
     const chatId = useRef<string | null>(null);
+
+    const isSubscribed = useRef(false);
+    const fetchedOrders = useRef(false);
+
+    const [orders, setOrders] = useState<Order[]>([]);
 
     useEffect(() => {
         const fetchChats = async () => {
@@ -61,8 +74,40 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
             }
         };
 
+        const fetchSubscriptions = async () => {
+            const { data } = await authClient.customer.orders.list({
+                query: {
+                    page: 1,
+                    limit: 10,
+                },
+            });
+            if (!data) return;
+            const { items } = data.result;
+            const orders = items.map((item: any) => ({
+                id: item.id,
+                name: item.product.name,
+                description: item.product.description,
+            }));
+            setOrders(orders);
+            if (items.length !== 0) {
+                isSubscribed.current = true;
+            }
+            fetchedOrders.current = true;
+        };
+
         fetchChats();
+        fetchSubscriptions();
     }, []);
+
+    useEffect(() => {
+        if (
+            fetchedOrders.current &&
+            orders.length === 0 &&
+            pathname.includes("survey")
+        ) {
+            router.push("/checkout");
+        }
+    }, [fetchedOrders, orders, router, id, pathname]);
 
     const fetchChatData = useCallback(
         (ID = chatId.current) => {
@@ -129,8 +174,18 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
             setChatId: (id: string) => {
                 chatId.current = id;
             },
+            isSubscribed,
+            orders,
         };
-    }, [chatId, session, conversations, messages, currentConversation]);
+    }, [
+        chatId,
+        session,
+        conversations,
+        messages,
+        currentConversation,
+        isSubscribed,
+        orders,
+    ]);
 
     return (
         <UserContext.Provider value={value}>{children}</UserContext.Provider>
