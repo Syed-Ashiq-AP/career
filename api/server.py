@@ -132,7 +132,7 @@ def submit_answer():
     user_answers = data.get('user_answers', {})
     
     # Check if we've reached the question limit
-    if len(answered_questions) >= 15:
+    if len(answered_questions) >= 5:
         return jsonify({
             'completed': True,
             'total_answered': len(answered_questions)
