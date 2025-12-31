@@ -76,7 +76,9 @@ function selectNextQuestionIntelligent(
         const scoredQuestions = availableNext.map(
             (qId: number) => [qId, scoreQuestion(qId)] as [number, number]
         );
-        scoredQuestions.sort((a, b) => b[1] - a[1]);
+        scoredQuestions.sort(
+            (a: [number, number], b: [number, number]) => b[1] - a[1]
+        );
         return getQuestionById(scoredQuestions[0][0]);
     }
     const allQuestionIds = Object.keys(questionsMap).map((qId) =>

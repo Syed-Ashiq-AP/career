@@ -52,7 +52,7 @@ function selectNextQuestionIntelligent(
         return score;
     }
     const bestNext = availableNext.sort(
-        (a, b) => scoreQuestion(b) - scoreQuestion(a)
+        (a: string, b: string) => scoreQuestion(b) - scoreQuestion(a)
     )[0];
     return getQuestionById(bestNext) || null;
 }

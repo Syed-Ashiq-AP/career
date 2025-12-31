@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
         score,
         percentage:
             Math.round((score / Object.values(answers).length) * 1000) / 10,
-        description: dataset.categories?.[cat]?.description || "",
+        description: dataset.categories?.[cat as keyof typeof dataset.categories]?.description || "",
     }));
 
     return NextResponse.json({

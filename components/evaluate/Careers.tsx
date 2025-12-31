@@ -102,7 +102,7 @@ export const Careers = ({ userAnswers }: CareersProps) => {
     const topCareers = careers.slice(0, 3);
 
     return (
-        <div className="flex flex-col items-center gap-6 p-4 w-fit mx-auto">
+        <div className="flex flex-col items-center gap-6 p-4 w-fit mx-auto overflow-y-auto py-5">
             <div className="text-center space-y-2">
                 <h1 className="text-3xl font-bold">Your Top Career Matches</h1>
                 <p className="text-muted-foreground">
@@ -136,7 +136,7 @@ export const Careers = ({ userAnswers }: CareersProps) => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+            <div className="flex flex-wrap gap-6 mx-auto items-center justify-center">
                 {topCareers.map((career, index) => {
                     return (
                         <CareerCard

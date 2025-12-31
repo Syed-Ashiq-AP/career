@@ -79,7 +79,9 @@ function selectNextQuestionIntelligent(
         const scoredQuestions = availableNext.map(
             (qId: number) => [qId, scoreQuestion(qId)] as [number, number]
         );
-        scoredQuestions.sort((a, b) => b[1] - a[1]);
+        scoredQuestions.sort(
+            (a: [number, number], b: [number, number]) => b[1] - a[1]
+        );
         return getQuestionById(scoredQuestions[0][0]);
     }
     // Fallback: if no suggested questions available, find any unanswered question
@@ -101,7 +103,8 @@ function selectNextQuestionIntelligent(
 
 export async function POST(_req: NextRequest) {
     // Use the start_question id from dataset, and ensure it exists in the questions map
-    const startId = dataset.start_question || Object.keys(questionsMap)[0];
+    const startId =
+        (dataset as any).start_question || Object.keys(questionsMap)[0];
     const firstQuestion = getQuestionById(startId);
     return NextResponse.json({
         question: firstQuestion || null,
