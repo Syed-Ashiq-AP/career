@@ -22,6 +22,7 @@ import { useSurvey } from "@/hooks/use-survey";
 
 const ChatBot = () => {
     const {
+        wait,
         chatId,
         messages: initMessages,
         updateMessages,
@@ -137,7 +138,9 @@ const ChatBot = () => {
                         </PromptInputBody>
                         <PromptInputFooter>
                             <PromptInputTools></PromptInputTools>
-                            <PromptInputSubmit status={status} />
+                            <PromptInputSubmit
+                                status={wait.current ? "submitted" : status}
+                            />
                         </PromptInputFooter>
                     </PromptInput>
                 </PromptInputProvider>

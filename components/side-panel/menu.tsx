@@ -80,7 +80,7 @@ export function Menu({ isOpen }: MenuProps) {
     ];
 
     return (
-        <ScrollArea className="[&>div>div[style]]:!block">
+        <ScrollArea className="[&>div>div[style]]:block!">
             <nav className="mt-8 h-full w-full">
                 <ul className="flex flex-col items-start space-y-1 px-2">
                     {menu.map(({ groupLabel, menus }, index) => (

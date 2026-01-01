@@ -18,8 +18,6 @@ import {
 
 export type UserContextType = {
     user: User | null;
-    setCurrentConversation: Dispatch<SetStateAction<Chat | null>>;
-    currentConversation: Chat | null;
     setConversations: Dispatch<SetStateAction<Chat[]>>;
     conversations: Chat[];
     setMessages: Dispatch<SetStateAction<AIMessage[]>>;
@@ -28,6 +26,7 @@ export type UserContextType = {
     messages: AIMessage[];
     isSubscribed: RefObject<boolean>;
     orders: Order[];
+    wait: RefObject<boolean>;
 };
 
 export type UserProviderProps = {
@@ -46,18 +45,19 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
     const { data: session } = authClient.useSession();
     const [conversations, setConversations] = useState<Chat[]>([]);
     const [messages, setMessages] = useState<AIMessage[]>([]);
-    const [currentConversation, setCurrentConversation] = useState<Chat | null>(
-        null
-    );
+
     const chatId = useRef<string | null>(null);
 
     const isSubscribed = useRef(false);
     const fetchedOrders = useRef(false);
 
+    const wait = useRef(true);
+
     const [orders, setOrders] = useState<Order[]>([]);
 
     useEffect(() => {
         const fetchChats = async () => {
+            wait.current = true;
             const response = await fetch(`/api/user-chat`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
@@ -71,10 +71,12 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
             const data = await response.json();
             if (data.conversations) {
                 setConversations(data.conversations);
+                wait.current = false;
             }
         };
 
         const fetchSubscriptions = async () => {
+            wait.current = true;
             const { data } = await authClient.customer.orders.list({
                 query: {
                     page: 1,
@@ -93,6 +95,7 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
                 isSubscribed.current = true;
             }
             fetchedOrders.current = true;
+            wait.current = false;
         };
 
         fetchChats();
@@ -111,6 +114,7 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
 
     const fetchChatData = useCallback(
         (ID = chatId.current) => {
+            wait.current = true;
             if (!ID) return;
             const fetchMessages = async () => {
                 const response = await fetch(`/api/user-chat/${ID}`, {
@@ -143,10 +147,11 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
                 } else {
                     setMessages([]);
                 }
+                wait.current = true;
             };
             fetchMessages();
         },
-        [chatId]
+        [chatId, wait]
     );
 
     // When 'id' changes, fetch chat data
@@ -164,8 +169,6 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
 
         return {
             user,
-            currentConversation,
-            setCurrentConversation,
             conversations,
             setConversations,
             messages,
@@ -176,16 +179,9 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
             },
             isSubscribed,
             orders,
+            wait,
         };
-    }, [
-        chatId,
-        session,
-        conversations,
-        messages,
-        currentConversation,
-        isSubscribed,
-        orders,
-    ]);
+    }, [chatId, session, conversations, messages, isSubscribed, orders, wait]);
 
     return (
         <UserContext.Provider value={value}>{children}</UserContext.Provider>

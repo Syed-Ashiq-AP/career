@@ -11,6 +11,7 @@ import {
     DollarSign,
     Building2,
     BookOpen,
+    FileSpreadsheet,
 } from "lucide-react";
 import {
     AIMessage,
@@ -143,45 +144,61 @@ export function Conversation({
     }, [status, response, setMetaData, tools, generatedTools]);
 
     return (
-        <div className="rounded-lg my-4 bg-card space-y-2 overflow-clip max-w-5xl mx-5 lg:mx-auto  ">
+        <div className="rounded-lg my-4 bg-card space-y-2 overflow-clip max-w-5xl mx-2 lg:mx-auto  ">
             <Tabs defaultValue="summary">
                 <div className="bg-accent rounded-b-lg p-1 sticky top-0 shadow-lg z-10">
-                    <div className="p-2 font-semibold">{userMessage}</div>
+                    <div className="p-2 font-semibold max-h-10 truncate">
+                        {userMessage}
+                    </div>
                     <TabsList className="flex-wrap h-auto">
-                        <TabsTrigger value="summary">Summary</TabsTrigger>
+                        <TabsTrigger value="summary">
+                            <FileSpreadsheet className="size-5 mr-1" />
+                            <span className="hidden md:inline">Summary</span>
+                        </TabsTrigger>
                         {tools.provide_sources && (
                             <TabsTrigger value="sources">
                                 <BookOpen className="w-4 h-4 mr-1" />
-                                Sources
+                                <span className="hidden md:inline">
+                                    Sources
+                                </span>
                             </TabsTrigger>
                         )}
                         {tools.suggest_videos && (
                             <TabsTrigger value="videos">
                                 <Play className="w-4 h-4 mr-1" />
-                                Videos
+                                <span className="hidden md:inline">Videos</span>
                             </TabsTrigger>
                         )}
                         {tools.list_colleges && (
                             <TabsTrigger value="colleges">
                                 <GraduationCap className="w-4 h-4 mr-1" />
-                                Colleges
+                                <span className="hidden md:inline">
+                                    Colleges
+                                </span>
                             </TabsTrigger>
                         )}
                         {tools.suggest_related_careers && (
                             <TabsTrigger value="careers">
                                 <Briefcase className="w-4 h-4 mr-1" />
-                                Related Careers
+                                <span className="hidden md:inline">
+                                    Related Careers
+                                </span>
                             </TabsTrigger>
                         )}
                         {tools.provide_salary_insights && (
                             <TabsTrigger value="salary">
                                 <DollarSign className="w-4 h-4 mr-1" />
-                                Salary Insights
+                                <span className="hidden md:inline">
+                                    Salary Insights
+                                </span>
                             </TabsTrigger>
                         )}
                         {tools.list_companies && (
                             <TabsTrigger value="companies">
                                 <Building2 className="w-4 h-4 mr-1" />
+                                <span className="hidden md:inline">
+                                    Companies
+                                </span>
                                 Companies
                             </TabsTrigger>
                         )}

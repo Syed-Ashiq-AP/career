@@ -9,8 +9,10 @@ export function useUserData() {
         setChatId,
         user,
         conversations,
+        setConversations,
         messages,
         orders,
+        wait,
     } = useContext(UserContext);
 
     const initiateConversation = useCallback(
@@ -26,12 +28,13 @@ export function useUserData() {
                 );
             }
 
-            const { id } = await response.json();
-            setChatId(id);
-            window.history.replaceState(null, "", `/${id}`);
-            return id;
+            const conversation = await response.json();
+            setChatId(conversation.id);
+            setConversations((prev) => [conversation, ...prev]);
+            window.history.replaceState(null, "", `/${conversation.id}`);
+            return conversation.id;
         },
-        [setChatId]
+        [setChatId, setConversations]
     );
 
     const updateMessages = useCallback(
@@ -75,5 +78,6 @@ export function useUserData() {
         initiateConversation,
         isSubscribed,
         orders,
+        wait,
     };
 }
