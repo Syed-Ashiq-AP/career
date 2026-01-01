@@ -38,6 +38,58 @@ export interface Company {
     location: string;
     roles: string[];
 }
+export interface RoadmapPhase {
+    phase: string;
+    duration: string;
+    skills: string[];
+    milestones: string[];
+    resources: string[];
+}
+export interface Course {
+    name: string;
+    provider: string;
+    type: "certification" | "course" | "bootcamp" | "degree";
+    duration: string;
+    cost: string;
+    level: "beginner" | "intermediate" | "advanced";
+    url?: string;
+}
+export interface SkillCategory {
+    category: string;
+    required: string[];
+    recommended: string[];
+}
+export interface Certification {
+    name: string;
+    provider: string;
+    description: string;
+    duration: string;
+    cost: string;
+    difficulty: "beginner" | "intermediate" | "advanced";
+    benefits: string;
+    url?: string;
+}
+export interface InterviewTip {
+    category: string;
+    description: string;
+    examples: string[];
+}
+export interface Project {
+    title: string;
+    description: string;
+    difficulty: "beginner" | "intermediate" | "advanced";
+    techStack: string[];
+    outcomes: string;
+    estimatedTime: string;
+}
+export interface Book {
+    title: string;
+    author: string;
+    description: string;
+    level: "beginner" | "intermediate" | "advanced";
+    keyTakeaways: string[];
+    link?: string;
+}
 export interface Tools {
     provide_sources?: { sources: Source[] };
     suggest_videos?: { videos: Video[] };
@@ -45,6 +97,16 @@ export interface Tools {
     suggest_related_careers?: { careers: Career[] };
     provide_salary_insights?: { position: string; insights: SalaryInsight[] };
     list_companies?: { companies: Company[] };
+    provide_career_roadmap?: { career: string; phases: RoadmapPhase[] };
+    suggest_courses?: { courses: Course[] };
+    provide_required_skills?: {
+        career: string;
+        skillCategories: SkillCategory[];
+    };
+    suggest_certifications?: { certifications: Certification[] };
+    provide_interview_tips?: { position: string; tips: InterviewTip[] };
+    suggest_projects?: { career: string; projects: Project[] };
+    recommend_books?: { books: Book[] };
 }
 
 export type MetaData = {
