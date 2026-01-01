@@ -262,7 +262,7 @@ export async function POST(req: Request) {
 
         // Run all tool generations in parallel
         const results = await Promise.all(
-            toolTypes.map(async (toolType) => {
+            toolTypes.map(async (toolType): Promise<[string, any]> => {
                 if (!schemas[toolType])
                     return [toolType, { error: "Invalid tool type" }];
                 try {
