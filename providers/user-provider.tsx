@@ -71,8 +71,8 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
             const data = await response.json();
             if (data.conversations) {
                 setConversations(data.conversations);
-                wait.current = false;
             }
+            wait.current = false;
         };
 
         const fetchSubscriptions = async () => {
@@ -147,7 +147,7 @@ export const UserProvider = ({ children, id }: UserProviderProps) => {
                 } else {
                     setMessages([]);
                 }
-                wait.current = true;
+                wait.current = false;
             };
             fetchMessages();
         },

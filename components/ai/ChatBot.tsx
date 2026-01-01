@@ -11,7 +11,7 @@ import {
     PromptInputSubmit,
     PromptInputTextarea,
     PromptInputTools,
-} from "@/components/ai-elements/prompt-input";
+} from "@/components/ai/prompt-input";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { Conversation } from "./Conversation";

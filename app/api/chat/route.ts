@@ -43,8 +43,6 @@ export async function POST(req: Request) {
 
         const { messages } = validation.data;
 
-        const { messages } = validation.data;
-
         // Check for suspicious content in messages
         for (const msg of messages) {
             const content = JSON.stringify(msg.parts || []);

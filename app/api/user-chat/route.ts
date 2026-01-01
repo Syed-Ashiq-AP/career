@@ -11,7 +11,6 @@ import {
 } from "@/lib/security/rate-limiter";
 import {
     validateRequestBody,
-    createErrorResponse,
     addSecurityHeaders,
     sanitizeString,
     detectSuspiciousInput,

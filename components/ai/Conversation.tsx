@@ -175,143 +175,126 @@ export function Conversation({
 
     const getToolTabName = (toolKey: string): string => {
         const mapping: Record<string, string> = {
-            "provide_sources": "sources",
-            "suggest_videos": "videos",
-            "list_colleges": "colleges",
-            "suggest_related_careers": "careers",
-            "provide_salary_insights": "salary",
-            "list_companies": "companies",
-            "provide_career_roadmap": "roadmap",
-            "suggest_courses": "courses",
-            "provide_required_skills": "skills",
-            "suggest_certifications": "certifications",
-            "provide_interview_tips": "interview",
-            "suggest_projects": "projects",
-            "recommend_books": "books",
+            provide_sources: "sources",
+            suggest_videos: "videos",
+            list_colleges: "colleges",
+            suggest_related_careers: "careers",
+            provide_salary_insights: "salary",
+            list_companies: "companies",
+            provide_career_roadmap: "roadmap",
+            suggest_courses: "courses",
+            provide_required_skills: "skills",
+            suggest_certifications: "certifications",
+            provide_interview_tips: "interview",
+            suggest_projects: "projects",
+            recommend_books: "books",
         };
         return mapping[toolKey] || toolKey;
     };
 
-    const firstAvailableTab = Object.keys(tools).length > 0 
-        ? getToolTabName(Object.keys(tools)[0])
-        : "summary";
+    const firstAvailableTab =
+        Object.keys(tools).length > 0
+            ? getToolTabName(Object.keys(tools)[0])
+            : "summary";
 
     return (
-        <div className="rounded-lg my-4 bg-card space-y-2 overflow-clip max-w-5xl mx-2 lg:mx-auto  ">
-            <Tabs defaultValue={firstAvailableTab}>
-                <div className="bg-accent rounded-b-lg p-1 sticky top-0 shadow-lg z-10">
+        <div className="rounded-lg my-4 bg-card overflow-clip max-w-5xl mx-2 lg:mx-auto  ">
+            <Tabs defaultValue={firstAvailableTab} className="gap-0">
+                <div className="bg-accent p-1">
                     <div className="p-2 font-semibold max-h-10 truncate">
                         {userMessage}
                     </div>
-                    <TabsList className="flex-wrap h-auto">
-                        <TabsTrigger value="summary">
-                            <FileSpreadsheet className="size-5 mr-1" />
-                            <span className="hidden md:inline">Summary</span>
-                        </TabsTrigger>
-                        {tools.provide_sources && (
-                            <TabsTrigger value="sources">
-                                <BookOpen className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Sources
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.suggest_videos && (
-                            <TabsTrigger value="videos">
-                                <Play className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">Videos</span>
-                            </TabsTrigger>
-                        )}
-                        {tools.list_colleges && (
-                            <TabsTrigger value="colleges">
-                                <GraduationCap className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Colleges
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.suggest_related_careers && (
-                            <TabsTrigger value="careers">
-                                <Briefcase className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Related Careers
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.provide_salary_insights && (
-                            <TabsTrigger value="salary">
-                                <DollarSign className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Salary Insights
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.list_companies && (
-                            <TabsTrigger value="companies">
-                                <Building2 className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Companies
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.provide_career_roadmap && (
-                            <TabsTrigger value="roadmap">
-                                <Map className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Roadmap
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.suggest_courses && (
-                            <TabsTrigger value="courses">
-                                <BookMarked className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Courses
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.provide_required_skills && (
-                            <TabsTrigger value="skills">
-                                <Target className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Skills
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.suggest_certifications && (
-                            <TabsTrigger value="certifications">
-                                <Award className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Certifications
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.provide_interview_tips && (
-                            <TabsTrigger value="interview">
-                                <MessageSquare className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Interview
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.suggest_projects && (
-                            <TabsTrigger value="projects">
-                                <Code className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Projects
-                                </span>
-                            </TabsTrigger>
-                        )}
-                        {tools.recommend_books && (
-                            <TabsTrigger value="books">
-                                <Book className="w-4 h-4 mr-1" />
-                                <span className="hidden md:inline">
-                                    Books
-                                </span>
-                            </TabsTrigger>
-                        )}
-                    </TabsList>
                 </div>
+                <TabsList className="flex-wrap w-full h-auto sticky top-0 shadow-lg z-10 rounded-none py-2 rounded-b-lg mb-2">
+                    <TabsTrigger value="summary">
+                        <FileSpreadsheet className="size-5 mr-1" />
+                        <span className="hidden md:inline">Summary</span>
+                    </TabsTrigger>
+                    {tools.provide_sources && (
+                        <TabsTrigger value="sources">
+                            <BookOpen className="size-5 mr-1" />
+                            <span className="hidden md:inline">Sources</span>
+                        </TabsTrigger>
+                    )}
+                    {tools.suggest_videos && (
+                        <TabsTrigger value="videos">
+                            <Play className="size-5 mr-1" />
+                            <span className="hidden md:inline">Videos</span>
+                        </TabsTrigger>
+                    )}
+                    {tools.list_colleges && (
+                        <TabsTrigger value="colleges">
+                            <GraduationCap className="size-5 mr-1" />
+                            <span className="hidden md:inline">Colleges</span>
+                        </TabsTrigger>
+                    )}
+                    {tools.suggest_related_careers && (
+                        <TabsTrigger value="careers">
+                            <Briefcase className="size-5 mr-1" />
+                            <span className="hidden md:inline">
+                                Related Careers
+                            </span>
+                        </TabsTrigger>
+                    )}
+                    {tools.provide_salary_insights && (
+                        <TabsTrigger value="salary">
+                            <DollarSign className="size-5 mr-1" />
+                            <span className="hidden md:inline">
+                                Salary Insights
+                            </span>
+                        </TabsTrigger>
+                    )}
+                    {tools.list_companies && (
+                        <TabsTrigger value="companies">
+                            <Building2 className="size-5 mr-1" />
+                            <span className="hidden md:inline">Companies</span>
+                        </TabsTrigger>
+                    )}
+                    {tools.provide_career_roadmap && (
+                        <TabsTrigger value="roadmap">
+                            <Map className="size-5 mr-1" />
+                            <span className="hidden md:inline">Roadmap</span>
+                        </TabsTrigger>
+                    )}
+                    {tools.suggest_courses && (
+                        <TabsTrigger value="courses">
+                            <BookMarked className="size-5 mr-1" />
+                            <span className="hidden md:inline">Courses</span>
+                        </TabsTrigger>
+                    )}
+                    {tools.provide_required_skills && (
+                        <TabsTrigger value="skills">
+                            <Target className="size-5 mr-1" />
+                            <span className="hidden md:inline">Skills</span>
+                        </TabsTrigger>
+                    )}
+                    {tools.suggest_certifications && (
+                        <TabsTrigger value="certifications">
+                            <Award className="size-5 mr-1" />
+                            <span className="hidden md:inline">
+                                Certifications
+                            </span>
+                        </TabsTrigger>
+                    )}
+                    {tools.provide_interview_tips && (
+                        <TabsTrigger value="interview">
+                            <MessageSquare className="size-5 mr-1" />
+                            <span className="hidden md:inline">Interview</span>
+                        </TabsTrigger>
+                    )}
+                    {tools.suggest_projects && (
+                        <TabsTrigger value="projects">
+                            <Code className="size-5 mr-1" />
+                            <span className="hidden md:inline">Projects</span>
+                        </TabsTrigger>
+                    )}
+                    {tools.recommend_books && (
+                        <TabsTrigger value="books">
+                            <Book className="size-5 mr-1" />
+                            <span className="hidden md:inline">Books</span>
+                        </TabsTrigger>
+                    )}
+                </TabsList>
                 {isEnriching && (
                     <div className="mx-5 my-4 p-4 bg-accent/50 rounded-lg text-sm text-muted-foreground flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
@@ -619,7 +602,8 @@ export function Conversation({
                     <TabsContent value="roadmap" className="py-2 px-4">
                         <div className="space-y-6">
                             <h3 className="font-semibold text-xl">
-                                Career Roadmap: {tools.provide_career_roadmap.career}
+                                Career Roadmap:{" "}
+                                {tools.provide_career_roadmap.career}
                             </h3>
                             {tools.provide_career_roadmap.phases.map(
                                 (phase: RoadmapPhase, idx: number) => (
@@ -632,7 +616,10 @@ export function Conversation({
                                                 <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
                                                     {idx + 1}
                                                 </div>
-                                                {idx < tools.provide_career_roadmap.phases.length - 1 && (
+                                                {idx <
+                                                    tools.provide_career_roadmap
+                                                        .phases.length -
+                                                        1 && (
                                                     <div className="w-0.5 h-16 bg-primary/30 my-2"></div>
                                                 )}
                                             </div>
@@ -646,40 +633,67 @@ export function Conversation({
                                                         ⏱ {phase.duration}
                                                     </span>
                                                 </div>
-                                                
+
                                                 <div className="mt-3">
-                                                    <div className="font-medium text-sm mb-2">🎯 Skills to Develop:</div>
+                                                    <div className="font-medium text-sm mb-2">
+                                                        🎯 Skills to Develop:
+                                                    </div>
                                                     <div className="flex flex-wrap gap-2 mb-3">
-                                                        {phase.skills.map((skill: string, i: number) => (
-                                                            <span
-                                                                key={i}
-                                                                className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-medium"
-                                                            >
-                                                                {skill}
-                                                            </span>
-                                                        ))}
+                                                        {phase.skills.map(
+                                                            (
+                                                                skill: string,
+                                                                i: number
+                                                            ) => (
+                                                                <span
+                                                                    key={i}
+                                                                    className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-medium"
+                                                                >
+                                                                    {skill}
+                                                                </span>
+                                                            )
+                                                        )}
                                                     </div>
                                                 </div>
 
                                                 <div className="mt-3">
-                                                    <div className="font-medium text-sm mb-2">🏆 Milestones:</div>
+                                                    <div className="font-medium text-sm mb-2">
+                                                        🏆 Milestones:
+                                                    </div>
                                                     <ul className="space-y-1 ml-4">
-                                                        {phase.milestones.map((milestone: string, i: number) => (
-                                                            <li key={i} className="text-sm list-disc">
-                                                                {milestone}
-                                                            </li>
-                                                        ))}
+                                                        {phase.milestones.map(
+                                                            (
+                                                                milestone: string,
+                                                                i: number
+                                                            ) => (
+                                                                <li
+                                                                    key={i}
+                                                                    className="text-sm list-disc"
+                                                                >
+                                                                    {milestone}
+                                                                </li>
+                                                            )
+                                                        )}
                                                     </ul>
                                                 </div>
 
                                                 <div className="mt-3">
-                                                    <div className="font-medium text-sm mb-2">📚 Learning Resources:</div>
+                                                    <div className="font-medium text-sm mb-2">
+                                                        📚 Learning Resources:
+                                                    </div>
                                                     <ul className="space-y-1 ml-4">
-                                                        {phase.resources.map((resource: string, i: number) => (
-                                                            <li key={i} className="text-sm list-disc text-muted-foreground">
-                                                                {resource}
-                                                            </li>
-                                                        ))}
+                                                        {phase.resources.map(
+                                                            (
+                                                                resource: string,
+                                                                i: number
+                                                            ) => (
+                                                                <li
+                                                                    key={i}
+                                                                    className="text-sm list-disc text-muted-foreground"
+                                                                >
+                                                                    {resource}
+                                                                </li>
+                                                            )
+                                                        )}
                                                     </ul>
                                                 </div>
                                             </div>
@@ -708,29 +722,51 @@ export function Conversation({
                                                 </h3>
                                                 <div className="space-y-2 text-sm">
                                                     <div className="flex items-center gap-2 text-muted-foreground">
-                                                        <span className="font-medium">Provider:</span>
-                                                        <span>{course.provider}</span>
+                                                        <span className="font-medium">
+                                                            Provider:
+                                                        </span>
+                                                        <span>
+                                                            {course.provider}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                                            course.type === 'certification' ? 'bg-purple-500/10 text-purple-600' :
-                                                            course.type === 'bootcamp' ? 'bg-orange-500/10 text-orange-600' :
-                                                            course.type === 'degree' ? 'bg-blue-500/10 text-blue-600' :
-                                                            'bg-green-500/10 text-green-600'
-                                                        }`}>
+                                                        <span
+                                                            className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                                course.type ===
+                                                                "certification"
+                                                                    ? "bg-purple-500/10 text-purple-600"
+                                                                    : course.type ===
+                                                                        "bootcamp"
+                                                                      ? "bg-orange-500/10 text-orange-600"
+                                                                      : course.type ===
+                                                                          "degree"
+                                                                        ? "bg-blue-500/10 text-blue-600"
+                                                                        : "bg-green-500/10 text-green-600"
+                                                            }`}
+                                                        >
                                                             {course.type}
                                                         </span>
-                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                                            course.level === 'beginner' ? 'bg-green-500/10 text-green-600' :
-                                                            course.level === 'intermediate' ? 'bg-yellow-500/10 text-yellow-600' :
-                                                            'bg-red-500/10 text-red-600'
-                                                        }`}>
+                                                        <span
+                                                            className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                                course.level ===
+                                                                "beginner"
+                                                                    ? "bg-green-500/10 text-green-600"
+                                                                    : course.level ===
+                                                                        "intermediate"
+                                                                      ? "bg-yellow-500/10 text-yellow-600"
+                                                                      : "bg-red-500/10 text-red-600"
+                                                            }`}
+                                                        >
                                                             {course.level}
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-4 text-muted-foreground">
-                                                        <span>⏱ {course.duration}</span>
-                                                        <span>💰 {course.cost}</span>
+                                                        <span>
+                                                            ⏱ {course.duration}
+                                                        </span>
+                                                        <span>
+                                                            💰 {course.cost}
+                                                        </span>
                                                     </div>
                                                     {course.url && (
                                                         <a
@@ -739,7 +775,8 @@ export function Conversation({
                                                             rel="noopener noreferrer"
                                                             className="inline-flex items-center gap-1 text-primary hover:underline mt-2"
                                                         >
-                                                            View Course <ExternalLink className="w-3 h-3" />
+                                                            View Course{" "}
+                                                            <ExternalLink className="w-3 h-3" />
                                                         </a>
                                                     )}
                                                 </div>
@@ -756,7 +793,8 @@ export function Conversation({
                     <TabsContent value="skills" className="py-2 px-4">
                         <div className="space-y-6">
                             <h3 className="font-semibold text-xl">
-                                Skills for: {tools.provide_required_skills.career}
+                                Skills for:{" "}
+                                {tools.provide_required_skills.career}
                             </h3>
                             {tools.provide_required_skills.skillCategories.map(
                                 (category: SkillCategory, idx: number) => (
@@ -770,58 +808,80 @@ export function Conversation({
                                                 <h4 className="font-semibold text-lg mb-3">
                                                     {category.category}
                                                 </h4>
-                                                
+
                                                 <div className="mb-4">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                                                            ⚠️ Required (Must-Have)
+                                                            ⚠️ Required
+                                                            (Must-Have)
                                                         </span>
                                                     </div>
                                                     <div className="flex flex-wrap gap-2">
-                                                        {category.required.map((skill: string, i: number) => (
-                                                            <button
-                                                                key={i}
-                                                                onClick={() => {
-                                                                    setSelectedItem({
-                                                                        type: "skill",
-                                                                        title: skill,
-                                                                        category: category.category,
-                                                                        required: true
-                                                                    });
-                                                                    setDialogOpen(true);
-                                                                }}
-                                                                className="bg-red-500/10 text-red-600 dark:text-red-400 px-3 py-1.5 rounded border border-red-500/20 text-sm font-medium hover:bg-red-500/20 transition-colors cursor-pointer"
-                                                            >
-                                                                {skill}
-                                                            </button>
-                                                        ))}
+                                                        {category.required.map(
+                                                            (
+                                                                skill: string,
+                                                                i: number
+                                                            ) => (
+                                                                <button
+                                                                    key={i}
+                                                                    onClick={() => {
+                                                                        setSelectedItem(
+                                                                            {
+                                                                                type: "skill",
+                                                                                title: skill,
+                                                                                category:
+                                                                                    category.category,
+                                                                                required: true,
+                                                                            }
+                                                                        );
+                                                                        setDialogOpen(
+                                                                            true
+                                                                        );
+                                                                    }}
+                                                                    className="bg-red-500/10 text-red-600 dark:text-red-400 px-3 py-1.5 rounded border border-red-500/20 text-sm font-medium hover:bg-red-500/20 transition-colors cursor-pointer"
+                                                                >
+                                                                    {skill}
+                                                                </button>
+                                                            )
+                                                        )}
                                                     </div>
                                                 </div>
 
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                                            ✨ Recommended (Good-to-Have)
+                                                            ✨ Recommended
+                                                            (Good-to-Have)
                                                         </span>
                                                     </div>
                                                     <div className="flex flex-wrap gap-2">
-                                                        {category.recommended.map((skill: string, i: number) => (
-                                                            <button
-                                                                key={i}
-                                                                onClick={() => {
-                                                                    setSelectedItem({
-                                                                        type: "skill",
-                                                                        title: skill,
-                                                                        category: category.category,
-                                                                        required: false
-                                                                    });
-                                                                    setDialogOpen(true);
-                                                                }}
-                                                                className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded border border-blue-500/20 text-sm hover:bg-blue-500/20 transition-colors cursor-pointer"
-                                                            >
-                                                                {skill}
-                                                            </button>
-                                                        ))}
+                                                        {category.recommended.map(
+                                                            (
+                                                                skill: string,
+                                                                i: number
+                                                            ) => (
+                                                                <button
+                                                                    key={i}
+                                                                    onClick={() => {
+                                                                        setSelectedItem(
+                                                                            {
+                                                                                type: "skill",
+                                                                                title: skill,
+                                                                                category:
+                                                                                    category.category,
+                                                                                required: false,
+                                                                            }
+                                                                        );
+                                                                        setDialogOpen(
+                                                                            true
+                                                                        );
+                                                                    }}
+                                                                    className="bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded border border-blue-500/20 text-sm hover:bg-blue-500/20 transition-colors cursor-pointer"
+                                                                >
+                                                                    {skill}
+                                                                </button>
+                                                            )
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -841,7 +901,10 @@ export function Conversation({
                                     <div
                                         key={idx}
                                         onClick={() => {
-                                            setSelectedItem({ type: "certification", ...cert });
+                                            setSelectedItem({
+                                                type: "certification",
+                                                ...cert,
+                                            });
                                             setDialogOpen(true);
                                         }}
                                         className="border rounded-lg p-4 hover:shadow-lg transition-all hover:scale-[1.02] cursor-pointer bg-card"
@@ -853,20 +916,34 @@ export function Conversation({
                                                     {cert.name}
                                                 </h3>
                                                 <div className="space-y-2 text-sm">
-                                                    <div className="text-muted-foreground">{cert.provider}</div>
-                                                    <p className="text-sm line-clamp-2">{cert.description}</p>
+                                                    <div className="text-muted-foreground">
+                                                        {cert.provider}
+                                                    </div>
+                                                    <p className="text-sm line-clamp-2">
+                                                        {cert.description}
+                                                    </p>
                                                     <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                                            cert.difficulty === 'beginner' ? 'bg-green-500/10 text-green-600' :
-                                                            cert.difficulty === 'intermediate' ? 'bg-yellow-500/10 text-yellow-600' :
-                                                            'bg-red-500/10 text-red-600'
-                                                        }`}>
+                                                        <span
+                                                            className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                                cert.difficulty ===
+                                                                "beginner"
+                                                                    ? "bg-green-500/10 text-green-600"
+                                                                    : cert.difficulty ===
+                                                                        "intermediate"
+                                                                      ? "bg-yellow-500/10 text-yellow-600"
+                                                                      : "bg-red-500/10 text-red-600"
+                                                            }`}
+                                                        >
                                                             {cert.difficulty}
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-4 text-muted-foreground">
-                                                        <span>⏱ {cert.duration}</span>
-                                                        <span>💰 {cert.cost}</span>
+                                                        <span>
+                                                            ⏱ {cert.duration}
+                                                        </span>
+                                                        <span>
+                                                            💰 {cert.cost}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -882,7 +959,8 @@ export function Conversation({
                     <TabsContent value="interview" className="py-2 px-4">
                         <div className="space-y-6">
                             <h3 className="font-semibold text-xl">
-                                Interview Tips for: {tools.provide_interview_tips.position}
+                                Interview Tips for:{" "}
+                                {tools.provide_interview_tips.position}
                             </h3>
                             {tools.provide_interview_tips.tips.map(
                                 (tip: InterviewTip, idx: number) => (
@@ -900,24 +978,37 @@ export function Conversation({
                                                     {tip.description}
                                                 </p>
                                                 <div className="space-y-2">
-                                                    <div className="font-medium text-sm">Examples:</div>
-                                                    {tip.examples.map((example: string, i: number) => (
-                                                        <div
-                                                            key={i}
-                                                            onClick={() => {
-                                                                setSelectedItem({
-                                                                    type: "interview",
-                                                                    category: tip.category,
-                                                                    example,
-                                                                    description: tip.description
-                                                                });
-                                                                setDialogOpen(true);
-                                                            }}
-                                                            className="bg-accent/50 p-3 rounded text-sm hover:bg-accent transition-colors cursor-pointer"
-                                                        >
-                                                            • {example}
-                                                        </div>
-                                                    ))}
+                                                    <div className="font-medium text-sm">
+                                                        Examples:
+                                                    </div>
+                                                    {tip.examples.map(
+                                                        (
+                                                            example: string,
+                                                            i: number
+                                                        ) => (
+                                                            <div
+                                                                key={i}
+                                                                onClick={() => {
+                                                                    setSelectedItem(
+                                                                        {
+                                                                            type: "interview",
+                                                                            category:
+                                                                                tip.category,
+                                                                            example,
+                                                                            description:
+                                                                                tip.description,
+                                                                        }
+                                                                    );
+                                                                    setDialogOpen(
+                                                                        true
+                                                                    );
+                                                                }}
+                                                                className="bg-accent/50 p-3 rounded text-sm hover:bg-accent transition-colors cursor-pointer"
+                                                            >
+                                                                • {example}
+                                                            </div>
+                                                        )
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -932,14 +1023,18 @@ export function Conversation({
                     <TabsContent value="projects" className="py-2 px-4">
                         <div className="space-y-6">
                             <h3 className="font-semibold text-xl">
-                                Project Ideas for: {tools.suggest_projects.career}
+                                Project Ideas for:{" "}
+                                {tools.suggest_projects.career}
                             </h3>
                             {tools.suggest_projects.projects.map(
                                 (project: Project, idx: number) => (
                                     <div
                                         key={idx}
                                         onClick={() => {
-                                            setSelectedItem({ type: "project", ...project });
+                                            setSelectedItem({
+                                                type: "project",
+                                                ...project,
+                                            });
                                             setDialogOpen(true);
                                         }}
                                         className="border rounded-lg p-5 hover:shadow-md transition-all hover:scale-[1.01] cursor-pointer bg-gradient-to-r from-card to-accent/10"
@@ -951,11 +1046,17 @@ export function Conversation({
                                                     <h4 className="font-semibold text-lg">
                                                         {project.title}
                                                     </h4>
-                                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ml-auto ${
-                                                        project.difficulty === 'beginner' ? 'bg-green-500/10 text-green-600' :
-                                                        project.difficulty === 'intermediate' ? 'bg-yellow-500/10 text-yellow-600' :
-                                                        'bg-red-500/10 text-red-600'
-                                                    }`}>
+                                                    <span
+                                                        className={`px-2 py-0.5 rounded text-xs font-medium ml-auto ${
+                                                            project.difficulty ===
+                                                            "beginner"
+                                                                ? "bg-green-500/10 text-green-600"
+                                                                : project.difficulty ===
+                                                                    "intermediate"
+                                                                  ? "bg-yellow-500/10 text-yellow-600"
+                                                                  : "bg-red-500/10 text-red-600"
+                                                        }`}
+                                                    >
                                                         {project.difficulty}
                                                     </span>
                                                 </div>
@@ -963,20 +1064,35 @@ export function Conversation({
                                                     {project.description}
                                                 </p>
                                                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                                                    <span>⏱ {project.estimatedTime}</span>
+                                                    <span>
+                                                        ⏱{" "}
+                                                        {project.estimatedTime}
+                                                    </span>
                                                 </div>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {project.techStack.slice(0, 5).map((tech: string, i: number) => (
-                                                        <span
-                                                            key={i}
-                                                            className="bg-primary/10 text-primary px-2 py-1 rounded text-xs"
-                                                        >
-                                                            {tech}
-                                                        </span>
-                                                    ))}
-                                                    {project.techStack.length > 5 && (
+                                                    {project.techStack
+                                                        .slice(0, 5)
+                                                        .map(
+                                                            (
+                                                                tech: string,
+                                                                i: number
+                                                            ) => (
+                                                                <span
+                                                                    key={i}
+                                                                    className="bg-primary/10 text-primary px-2 py-1 rounded text-xs"
+                                                                >
+                                                                    {tech}
+                                                                </span>
+                                                            )
+                                                        )}
+                                                    {project.techStack.length >
+                                                        5 && (
                                                         <span className="text-xs text-muted-foreground">
-                                                            +{project.techStack.length - 5} more
+                                                            +
+                                                            {project.techStack
+                                                                .length -
+                                                                5}{" "}
+                                                            more
                                                         </span>
                                                     )}
                                                 </div>
@@ -997,7 +1113,10 @@ export function Conversation({
                                     <div
                                         key={idx}
                                         onClick={() => {
-                                            setSelectedItem({ type: "book", ...book });
+                                            setSelectedItem({
+                                                type: "book",
+                                                ...book,
+                                            });
                                             setDialogOpen(true);
                                         }}
                                         className="border rounded-lg p-4 hover:shadow-lg transition-all hover:scale-[1.02] cursor-pointer bg-card"
@@ -1011,12 +1130,20 @@ export function Conversation({
                                                 <div className="text-sm text-muted-foreground mb-2">
                                                     by {book.author}
                                                 </div>
-                                                <p className="text-sm mb-3 line-clamp-2">{book.description}</p>
-                                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                                    book.level === 'beginner' ? 'bg-green-500/10 text-green-600' :
-                                                    book.level === 'intermediate' ? 'bg-yellow-500/10 text-yellow-600' :
-                                                    'bg-red-500/10 text-red-600'
-                                                }`}>
+                                                <p className="text-sm mb-3 line-clamp-2">
+                                                    {book.description}
+                                                </p>
+                                                <span
+                                                    className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                        book.level ===
+                                                        "beginner"
+                                                            ? "bg-green-500/10 text-green-600"
+                                                            : book.level ===
+                                                                "intermediate"
+                                                              ? "bg-yellow-500/10 text-yellow-600"
+                                                              : "bg-red-500/10 text-red-600"
+                                                    }`}
+                                                >
                                                     {book.level}
                                                 </span>
                                             </div>
@@ -1033,54 +1160,89 @@ export function Conversation({
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
-                            {selectedItem?.type === "skill" && selectedItem.title}
-                            {selectedItem?.type === "certification" && selectedItem.name}
-                            {selectedItem?.type === "interview" && selectedItem.category}
-                            {selectedItem?.type === "project" && selectedItem.title}
-                            {selectedItem?.type === "book" && selectedItem.title}
+                            {selectedItem?.type === "skill" &&
+                                selectedItem.title}
+                            {selectedItem?.type === "certification" &&
+                                selectedItem.name}
+                            {selectedItem?.type === "interview" &&
+                                selectedItem.category}
+                            {selectedItem?.type === "project" &&
+                                selectedItem.title}
+                            {selectedItem?.type === "book" &&
+                                selectedItem.title}
                         </DialogTitle>
                         <DialogDescription>
                             {selectedItem?.type === "skill" && (
                                 <div className="space-y-3 text-left mt-4">
                                     <div className="text-base">
-                                        <strong>{selectedItem.title}</strong> is a {selectedItem.required ? "required" : "recommended"} skill in the {selectedItem.category} category.
+                                        <strong>{selectedItem.title}</strong> is
+                                        a{" "}
+                                        {selectedItem.required
+                                            ? "required"
+                                            : "recommended"}{" "}
+                                        skill in the {selectedItem.category}{" "}
+                                        category.
                                     </div>
                                     <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">About this skill:</h4>
+                                        <h4 className="font-semibold mb-2">
+                                            About this skill:
+                                        </h4>
                                         <div className="text-sm">
-                                            {selectedItem.required 
+                                            {selectedItem.required
                                                 ? `This is a must-have skill for this career. Employers expect candidates to have solid proficiency in ${selectedItem.title}. Focus on building strong fundamentals and practical experience.`
-                                                : `While not strictly required, ${selectedItem.title} is highly valued by employers and can give you a competitive edge. Consider learning this skill to expand your opportunities.`
-                                            }
+                                                : `While not strictly required, ${selectedItem.title} is highly valued by employers and can give you a competitive edge. Consider learning this skill to expand your opportunities.`}
                                         </div>
                                     </div>
                                     <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">How to learn:</h4>
+                                        <h4 className="font-semibold mb-2">
+                                            How to learn:
+                                        </h4>
                                         <ul className="text-sm space-y-1 list-disc list-inside">
-                                            <li>Start with online courses (Coursera, Udemy, freeCodeCamp)</li>
-                                            <li>Practice through hands-on projects</li>
-                                            <li>Join communities and forums for guidance</li>
-                                            <li>Build a portfolio showcasing this skill</li>
+                                            <li>
+                                                Start with online courses
+                                                (Coursera, Udemy, freeCodeCamp)
+                                            </li>
+                                            <li>
+                                                Practice through hands-on
+                                                projects
+                                            </li>
+                                            <li>
+                                                Join communities and forums for
+                                                guidance
+                                            </li>
+                                            <li>
+                                                Build a portfolio showcasing
+                                                this skill
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
                             )}
                             {selectedItem?.type === "certification" && (
                                 <div className="space-y-3 text-left mt-4">
-                                    <div className="text-base">{selectedItem.description}</div>
+                                    <div className="text-base">
+                                        {selectedItem.description}
+                                    </div>
                                     <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">Benefits:</h4>
-                                        <div className="text-sm">{selectedItem.benefits}</div>
+                                        <h4 className="font-semibold mb-2">
+                                            Benefits:
+                                        </h4>
+                                        <div className="text-sm">
+                                            {selectedItem.benefits}
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                            <strong>Duration:</strong> {selectedItem.duration}
+                                            <strong>Duration:</strong>{" "}
+                                            {selectedItem.duration}
                                         </div>
                                         <div>
-                                            <strong>Cost:</strong> {selectedItem.cost}
+                                            <strong>Cost:</strong>{" "}
+                                            {selectedItem.cost}
                                         </div>
                                         <div>
-                                            <strong>Level:</strong> {selectedItem.difficulty}
+                                            <strong>Level:</strong>{" "}
+                                            {selectedItem.difficulty}
                                         </div>
                                     </div>
                                     {selectedItem.url && (
@@ -1090,59 +1252,103 @@ export function Conversation({
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-2 text-primary hover:underline mt-2"
                                         >
-                                            Learn More <ExternalLink className="w-4 h-4" />
+                                            Learn More{" "}
+                                            <ExternalLink className="size-5" />
                                         </a>
                                     )}
                                 </div>
                             )}
                             {selectedItem?.type === "interview" && (
                                 <div className="space-y-3 text-left mt-4">
-                                    <div className="text-base">{selectedItem.description}</div>
-                                    <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">Example Response:</h4>
-                                        <div className="text-sm italic">{selectedItem.example}</div>
+                                    <div className="text-base">
+                                        {selectedItem.description}
                                     </div>
                                     <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">Tips:</h4>
+                                        <h4 className="font-semibold mb-2">
+                                            Example Response:
+                                        </h4>
+                                        <div className="text-sm italic">
+                                            {selectedItem.example}
+                                        </div>
+                                    </div>
+                                    <div className="bg-accent/50 p-4 rounded-lg">
+                                        <h4 className="font-semibold mb-2">
+                                            Tips:
+                                        </h4>
                                         <ul className="text-sm space-y-1 list-disc list-inside">
-                                            <li>Be specific and provide concrete examples</li>
-                                            <li>Use the STAR method (Situation, Task, Action, Result)</li>
-                                            <li>Practice your response out loud</li>
-                                            <li>Keep your answer concise (2-3 minutes)</li>
+                                            <li>
+                                                Be specific and provide concrete
+                                                examples
+                                            </li>
+                                            <li>
+                                                Use the STAR method (Situation,
+                                                Task, Action, Result)
+                                            </li>
+                                            <li>
+                                                Practice your response out loud
+                                            </li>
+                                            <li>
+                                                Keep your answer concise (2-3
+                                                minutes)
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
                             )}
                             {selectedItem?.type === "project" && (
                                 <div className="space-y-3 text-left mt-4">
-                                    <div className="text-base">{selectedItem.description}</div>
+                                    <div className="text-base">
+                                        {selectedItem.description}
+                                    </div>
                                     <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">Learning Outcomes:</h4>
-                                        <div className="text-sm">{selectedItem.outcomes}</div>
+                                        <h4 className="font-semibold mb-2">
+                                            Learning Outcomes:
+                                        </h4>
+                                        <div className="text-sm">
+                                            {selectedItem.outcomes}
+                                        </div>
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold mb-2">Tech Stack:</h4>
+                                        <h4 className="font-semibold mb-2">
+                                            Tech Stack:
+                                        </h4>
                                         <div className="flex flex-wrap gap-2">
-                                            {selectedItem.techStack?.map((tech: string, i: number) => (
-                                                <span
-                                                    key={i}
-                                                    className="bg-primary/10 text-primary px-3 py-1 rounded text-sm"
-                                                >
-                                                    {tech}
-                                                </span>
-                                            ))}
+                                            {selectedItem.techStack?.map(
+                                                (tech: string, i: number) => (
+                                                    <span
+                                                        key={i}
+                                                        className="bg-primary/10 text-primary px-3 py-1 rounded text-sm"
+                                                    >
+                                                        {tech}
+                                                    </span>
+                                                )
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-sm">
-                                        <strong>Estimated Time:</strong> {selectedItem.estimatedTime}
+                                        <strong>Estimated Time:</strong>{" "}
+                                        {selectedItem.estimatedTime}
                                     </div>
                                     <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">Getting Started:</h4>
+                                        <h4 className="font-semibold mb-2">
+                                            Getting Started:
+                                        </h4>
                                         <ul className="text-sm space-y-1 list-disc list-inside">
-                                            <li>Break the project into smaller milestones</li>
-                                            <li>Set up version control (Git/GitHub)</li>
-                                            <li>Document your progress and learnings</li>
-                                            <li>Deploy and share your project</li>
+                                            <li>
+                                                Break the project into smaller
+                                                milestones
+                                            </li>
+                                            <li>
+                                                Set up version control
+                                                (Git/GitHub)
+                                            </li>
+                                            <li>
+                                                Document your progress and
+                                                learnings
+                                            </li>
+                                            <li>
+                                                Deploy and share your project
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
@@ -1152,17 +1358,27 @@ export function Conversation({
                                     <div className="text-sm text-muted-foreground">
                                         by {selectedItem.author}
                                     </div>
-                                    <div className="text-base">{selectedItem.description}</div>
+                                    <div className="text-base">
+                                        {selectedItem.description}
+                                    </div>
                                     <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">Key Takeaways:</h4>
+                                        <h4 className="font-semibold mb-2">
+                                            Key Takeaways:
+                                        </h4>
                                         <ul className="text-sm space-y-1 list-disc list-inside">
-                                            {selectedItem.keyTakeaways?.map((takeaway: string, i: number) => (
-                                                <li key={i}>{takeaway}</li>
-                                            ))}
+                                            {selectedItem.keyTakeaways?.map(
+                                                (
+                                                    takeaway: string,
+                                                    i: number
+                                                ) => (
+                                                    <li key={i}>{takeaway}</li>
+                                                )
+                                            )}
                                         </ul>
                                     </div>
                                     <div className="text-sm">
-                                        <strong>Level:</strong> {selectedItem.level}
+                                        <strong>Level:</strong>{" "}
+                                        {selectedItem.level}
                                     </div>
                                     {selectedItem.link && (
                                         <a
@@ -1171,7 +1387,8 @@ export function Conversation({
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-2 text-primary hover:underline mt-2"
                                         >
-                                            View Book <ExternalLink className="w-4 h-4" />
+                                            View Book{" "}
+                                            <ExternalLink className="size-5" />
                                         </a>
                                     )}
                                 </div>

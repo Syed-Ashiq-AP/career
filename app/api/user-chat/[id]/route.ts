@@ -168,7 +168,6 @@ export async function POST(
         }
 
         const { messages, update } = validation.data;
-        const { messages, update } = validation.data;
 
         const session = await auth.api.getSession({
             headers: await headers(),

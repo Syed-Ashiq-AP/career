@@ -1,4 +1,4 @@
-import { PromptInputMessage } from "@/components/ai-elements/prompt-input";
+import { PromptInputMessage } from "@/components/ai/prompt-input";
 import { useUserData } from "./use-user";
 
 const sendQueryMessage = async (
