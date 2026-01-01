@@ -1,14 +1,66 @@
 import { convertToModelMessages, streamText } from "ai";
 import { perplexity } from "@ai-sdk/perplexity";
 import { AIMessage } from "@/lib/UIMessage";
+import { z } from "zod";
+import { applyRateLimit, RATE_LIMITS } from "@/lib/security/rate-limiter";
+import {
+    validateRequestBody,
+    createErrorResponse,
+    addSecurityHeaders,
+    checkRequestSize,
+    detectSuspiciousInput,
+} from "@/lib/security/middleware";
 
 export const maxDuration = 60;
 
-export async function POST(req: Request) {
-    try {
-        const { messages }: { messages: AIMessage[] } = await req.json();
+// Validation schema for chat messages
+const messageSchema = z.object({
+    id: z.string(),
+    role: z.enum(["user", "assistant", "system"]),
+    parts: z.array(z.any()).optional(),
+    metadata: z.any().optional(),
+});
 
-        const modelMessages = await convertToModelMessages(messages);
+const chatRequestSchema = z.object({
+    messages: z.array(messageSchema).min(1).max(50), // Limit message history
+});
+
+export async function POST(req: Request) {
+    // Apply rate limiting (more restrictive for AI calls)
+    const rateLimitResponse = applyRateLimit(req, RATE_LIMITS.AI_CHAT);
+    if (rateLimitResponse) return addSecurityHeaders(rateLimitResponse);
+
+    // Check request size (limit to 500KB for chat)
+    const sizeCheck = await checkRequestSize(req, 500 * 1024);
+    if (sizeCheck) return addSecurityHeaders(sizeCheck);
+
+    try {
+        // Validate request body
+        const validation = await validateRequestBody(req, chatRequestSchema);
+        if (!validation.success) {
+            return addSecurityHeaders(validation.error);
+        }
+
+        const { messages } = validation.data;
+
+        const { messages } = validation.data;
+
+        // Check for suspicious content in messages
+        for (const msg of messages) {
+            const content = JSON.stringify(msg.parts || []);
+            if (detectSuspiciousInput(content)) {
+                return addSecurityHeaders(
+                    createErrorResponse(
+                        "Suspicious content detected in messages",
+                        400
+                    )
+                );
+            }
+        }
+
+        const modelMessages = await convertToModelMessages(
+            messages as AIMessage[]
+        );
 
         const filteredMessages = [];
         let lastRole = "system";
@@ -66,9 +118,8 @@ export async function POST(req: Request) {
         return result.toUIMessageStreamResponse();
     } catch (error) {
         console.error("Chat API Error:", error);
-        return new Response(
-            JSON.stringify({ error: "Failed to process chat request" }),
-            { status: 500, headers: { "Content-Type": "application/json" } }
+        return addSecurityHeaders(
+            createErrorResponse("Failed to process chat request", 500)
         );
     }
 }

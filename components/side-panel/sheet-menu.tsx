@@ -10,6 +10,7 @@ import {
     SheetHeader,
     SheetContent,
     SheetTrigger,
+    SheetTitle,
 } from "@/components/ui/sheet";
 import Image from "next/image";
 import { useUserData } from "@/hooks/use-user";
@@ -34,6 +35,7 @@ export function SheetMenu() {
                 side="left"
             >
                 <SheetHeader>
+                    <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                     <Button
                         className="flex justify-center items-center pb-2 pt-1"
                         variant="link"

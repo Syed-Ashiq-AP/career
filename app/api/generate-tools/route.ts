@@ -1,12 +1,53 @@
 import { generateObject } from "ai";
 import { perplexity } from "@ai-sdk/perplexity";
 import { z } from "zod";
+import { applyRateLimit, RATE_LIMITS } from "@/lib/security/rate-limiter";
+import {
+    validateRequestBody,
+    createErrorResponse,
+    createSuccessResponse,
+    addSecurityHeaders,
+    checkRequestSize,
+    sanitizeString,
+    sanitizeStringArray,
+    detectSuspiciousInput,
+} from "@/lib/security/middleware";
 
 export const maxDuration = 60;
 
+// Validation schema
+const generateToolsSchema = z.object({
+    query: z.string().min(1).max(500),
+    toolTypes: z.array(z.string()).min(1).max(12),
+});
+
 export async function POST(req: Request) {
+    // Apply rate limiting (strict for AI generation)
+    const rateLimitResponse = applyRateLimit(req, RATE_LIMITS.AI_GENERATION);
+    if (rateLimitResponse) return addSecurityHeaders(rateLimitResponse);
+
+    // Check request size
+    const sizeCheck = await checkRequestSize(req, 100 * 1024);
+    if (sizeCheck) return addSecurityHeaders(sizeCheck);
+
     try {
-        const { query, toolTypes } = await req.json(); // toolTypes: string[]
+        // Validate request body
+        const validation = await validateRequestBody(req, generateToolsSchema);
+        if (!validation.success) {
+            return addSecurityHeaders(validation.error);
+        }
+
+        let { query, toolTypes } = validation.data;
+
+        // Sanitize and validate inputs
+        query = sanitizeString(query);
+        toolTypes = sanitizeStringArray(toolTypes);
+
+        if (detectSuspiciousInput(query)) {
+            return addSecurityHeaders(
+                createErrorResponse("Suspicious query detected", 400)
+            );
+        }
 
         const schemas: Record<string, any> = {
             sources: z.object({
@@ -194,10 +235,28 @@ export async function POST(req: Request) {
             books: `Recommend books for learning about: ${query}. Include title, author, description, difficulty level, and key takeaways. Focus on books available in India or online.`,
         };
 
-        if (!Array.isArray(toolTypes) || toolTypes.length === 0) {
-            return Response.json(
-                { error: "No tool types provided" },
-                { status: 400 }
+        // Validate tool types
+        const validToolTypes = [
+            "sources",
+            "videos",
+            "colleges",
+            "careers",
+            "salary",
+            "companies",
+            "roadmap",
+            "courses",
+            "skills",
+            "certifications",
+            "interview",
+            "projects",
+            "books",
+        ];
+
+        toolTypes = toolTypes.filter((type) => validToolTypes.includes(type));
+
+        if (toolTypes.length === 0) {
+            return addSecurityHeaders(
+                createErrorResponse("No valid tool types provided", 400)
             );
         }
 
@@ -225,12 +284,11 @@ export async function POST(req: Request) {
             responseObj[toolType] = data;
         }
 
-        return Response.json(responseObj);
+        return addSecurityHeaders(createSuccessResponse(responseObj));
     } catch (error) {
         console.error("Generate Tools Error:", error);
-        return Response.json(
-            { error: "Failed to generate structured data" },
-            { status: 500 }
+        return addSecurityHeaders(
+            createErrorResponse("Failed to generate structured data", 500)
         );
     }
 }

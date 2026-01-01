@@ -3,17 +3,41 @@ import { Chat, PrismaClient } from "@/lib/generated/prisma/client";
 import { generateId } from "ai";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import {
+    applyRateLimit,
+    RATE_LIMITS,
+    addRateLimitHeaders,
+} from "@/lib/security/rate-limiter";
+import {
+    validateRequestBody,
+    createErrorResponse,
+    addSecurityHeaders,
+    sanitizeString,
+    detectSuspiciousInput,
+} from "@/lib/security/middleware";
 
-export async function GET() {
+// Validation schema for POST
+const createChatSchema = z.object({
+    title: z.string().min(1).max(200),
+});
+
+export async function GET(req: NextRequest) {
+    // Apply rate limiting
+    const rateLimitResponse = applyRateLimit(req, RATE_LIMITS.API_READ);
+    if (rateLimitResponse) return addSecurityHeaders(rateLimitResponse);
+
     try {
         const session = await auth.api.getSession({
             headers: await headers(),
         });
 
         if (!session?.user) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
+            return addSecurityHeaders(
+                new Response(JSON.stringify({ error: "Unauthorized" }), {
+                    status: 401,
+                    headers: { "Content-Type": "application/json" },
+                })
             );
         }
 
@@ -25,40 +49,62 @@ export async function GET() {
                     userId: session.user.id,
                 },
                 orderBy: { updatedAt: "desc" },
+                take: 100, // Limit to 100 conversations
             });
 
-            return NextResponse.json({
-                conversations,
-            });
+            const response = NextResponse.json({ conversations });
+            return addSecurityHeaders(
+                addRateLimitHeaders(response, req, RATE_LIMITS.API_READ)
+            );
         } finally {
             await prisma.$disconnect();
         }
     } catch (error) {
         console.error("List conversations error:", error);
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
+        return addSecurityHeaders(
+            new Response(JSON.stringify({ error: "Internal server error" }), {
+                status: 500,
+                headers: { "Content-Type": "application/json" },
+            })
         );
     }
 }
 
 export async function POST(req: NextRequest) {
-    const { title } = await req.json();
-    if (!title) {
-        return NextResponse.json(
-            { error: "title is required" },
-            { status: 400 }
-        );
-    }
+    // Apply rate limiting
+    const rateLimitResponse = applyRateLimit(req, RATE_LIMITS.API_WRITE);
+    if (rateLimitResponse) return addSecurityHeaders(rateLimitResponse);
+
     try {
+        // Validate request body
+        const validation = await validateRequestBody(req, createChatSchema);
+        if (!validation.success) {
+            return addSecurityHeaders(validation.error);
+        }
+
+        const { title } = validation.data;
+
+        // Sanitize and validate title
+        const cleanTitle = sanitizeString(title);
+        if (detectSuspiciousInput(cleanTitle)) {
+            return addSecurityHeaders(
+                new Response(JSON.stringify({ error: "Invalid title" }), {
+                    status: 400,
+                    headers: { "Content-Type": "application/json" },
+                })
+            );
+        }
+
         const session = await auth.api.getSession({
             headers: await headers(),
         });
 
         if (!session?.user) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
+            return addSecurityHeaders(
+                new Response(JSON.stringify({ error: "Unauthorized" }), {
+                    status: 401,
+                    headers: { "Content-Type": "application/json" },
+                })
             );
         }
 
@@ -66,24 +112,42 @@ export async function POST(req: NextRequest) {
 
         try {
             const conversation: Chat = await prisma.chat.create({
-                data: { id: generateId(), title, userId: session.user.id },
+                data: {
+                    id: generateId(),
+                    title: cleanTitle,
+                    userId: session.user.id,
+                },
             });
+
             if (!conversation) {
-                console.error("List conversations error:", conversation);
-                return NextResponse.json(
-                    { error: "Internal server error" },
-                    { status: 500 }
+                console.error("Create conversation error:", conversation);
+                return addSecurityHeaders(
+                    new Response(
+                        JSON.stringify({
+                            error: "Failed to create conversation",
+                        }),
+                        {
+                            status: 500,
+                            headers: { "Content-Type": "application/json" },
+                        }
+                    )
                 );
             }
-            return NextResponse.json(conversation);
+
+            const response = NextResponse.json(conversation);
+            return addSecurityHeaders(
+                addRateLimitHeaders(response, req, RATE_LIMITS.API_WRITE)
+            );
         } finally {
             await prisma.$disconnect();
         }
     } catch (error) {
-        console.error("List conversations error:", error);
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
+        console.error("Create conversation error:", error);
+        return addSecurityHeaders(
+            new Response(JSON.stringify({ error: "Internal server error" }), {
+                status: 500,
+                headers: { "Content-Type": "application/json" },
+            })
         );
     }
 }
