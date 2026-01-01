@@ -1,430 +1,375 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
 
-import { Button } from "@/components/evaluate/Button";
-import { PaginateButton } from "@/components/evaluate/PaginateButton";
-import { Careers } from "@/components/evaluate/Careers";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Careers } from "./Careers";
+import { Loader2, CheckCircle2 } from "lucide-react";
 
 interface Question {
-    id: number;
-    question: string;
-    group: string;
+    id: string;
+    text: string;
+    category: string;
+    importance_weight: number;
     options: {
-        [key: string]: {
-            text: string;
-            category: string;
-            image_keyword: string;
-            careers: string[];
-            next_questions: number[];
-        };
-    };
+        id: string;
+        text: string;
+    }[];
 }
 
-interface UserAnswer {
-    selected_option: string;
-    category: string;
-    careers: string[];
-    text: string;
+interface Answer {
+    questionId: string;
+    optionId: string;
 }
 
 export const Survey = () => {
-    const [currentQuestion, setCurrentQuestion] = useState<Question | null>(
-        null
-    );
-    const [questionHistory, setQuestionHistory] = useState<Question[]>([]);
-    const [answeredQuestions, setAnsweredQuestions] = useState<number[]>([]);
-    const [userAnswers, setUserAnswers] = useState<Record<number, UserAnswer>>(
-        {}
-    );
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [answers, setAnswers] = useState<Answer[]>([]);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
-    const [futureQuestions, setFutureQuestions] = useState<Question[]>([]);
-    const [completed, setCompleted] = useState(false);
-    const [optionImages, setOptionImages] = useState<Record<string, string>>(
-        {}
-    );
-    const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>(
-        {}
-    );
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [recommendations, setRecommendations] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    // Cache for storing fetched images to avoid redundant API calls
-    const imageCache = useRef<Record<string, string>>({});
-
-    // Load initial question on mount
+    // Load questions on mount
     useEffect(() => {
-        startSurvey();
+        loadQuestions();
     }, []);
 
-    // Set selected option if current question has been answered before
-    useEffect(() => {
-        if (currentQuestion && userAnswers[currentQuestion.id]) {
-            setSelectedOption(userAnswers[currentQuestion.id].selected_option);
-        } else {
-            setSelectedOption(null);
+    const loadQuestions = async () => {
+        try {
+            const response = await fetch("/api/career-survey", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "get_questions" }),
+            });
+
+            const data = await response.json();
+            if (data.questions && data.questions.length > 0) {
+                setQuestions(data.questions);
+            } else {
+                setError("Failed to load questions");
+            }
+        } catch (err) {
+            setError("Failed to load questions. Please refresh the page.");
+        } finally {
+            setLoading(false);
         }
-    }, [currentQuestion, userAnswers]);
+    };
 
-    // Fetch images for current question options
-    useEffect(() => {
-        if (!currentQuestion) return;
+    const totalSteps = questions.length;
 
-        const fetchImages = async () => {
+    const handleOptionSelect = async (optionId: string, optionText: string) => {
+        setSelectedOption(optionId);
+        setError(null);
+
+        // Small delay for visual feedback
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        const newAnswers = [
+            ...answers,
+            { questionId: questions[currentStep].id, optionId },
+        ];
+        setAnswers(newAnswers);
+        setSelectedOption(null);
+
+        if (currentStep < totalSteps - 1) {
+            setCurrentStep(currentStep + 1);
+        } else {
+            // Generate recommendations
+            setLoading(true);
             try {
-                const imageMap: Record<string, string> = {};
-                const loadedMap: Record<string, boolean> = {};
-                const keywordsToFetch: string[] = [];
-                const keywordToOptionKey: Record<string, string> = {};
-
-                // Check cache first and only fetch uncached images
-                Object.entries(currentQuestion.options).forEach(
-                    ([key, option]) => {
-                        const keyword = option.image_keyword;
-
-                        if (imageCache.current[keyword]) {
-                            // Use cached image
-                            imageMap[key] = imageCache.current[keyword];
-                            loadedMap[key] = true; // Cached images are considered loaded
-                        } else {
-                            // Need to fetch this image
-                            keywordsToFetch.push(keyword);
-                            keywordToOptionKey[keyword] = key;
-                            loadedMap[key] = false; // Mark as not loaded yet
-                        }
-                    }
-                );
-
-                // Set initial state
-                setOptionImages(imageMap);
-                setLoadedImages(loadedMap);
-
-                // If all images are cached, we're done
-                if (keywordsToFetch.length === 0) {
-                    return;
-                }
-
-                // Fetch only the uncached images
-                const response = await fetch("/api/images", {
+                const response = await fetch("/api/career-survey", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ keywords: keywordsToFetch }),
+                    body: JSON.stringify({
+                        action: "get_recommendations",
+                        answers: newAnswers,
+                    }),
                 });
-
-                if (!response.ok) throw new Error("Failed to fetch images");
 
                 const data = await response.json();
-
-                // Preload images and track when they're loaded
-                keywordsToFetch.forEach((keyword, index) => {
-                    if (data.images && data.images[index]) {
-                        const imageUrl = data.images[index].url;
-                        const optionKey = keywordToOptionKey[keyword];
-
-                        // Cache the image
-                        imageCache.current[keyword] = imageUrl;
-
-                        // Preload the image
-                        const img = new Image();
-                        img.onload = () => {
-                            setLoadedImages((prev) => ({
-                                ...prev,
-                                [optionKey]: true,
-                            }));
-                        };
-                        img.onerror = () => {
-                            // Even on error, mark as loaded to hide the loading state
-                            setLoadedImages((prev) => ({
-                                ...prev,
-                                [optionKey]: true,
-                            }));
-                        };
-                        img.src = imageUrl;
-
-                        // Update image map
-                        setOptionImages((prev) => ({
-                            ...prev,
-                            [optionKey]: imageUrl,
-                        }));
-                    }
-                });
-            } catch (error) {
-                console.error("Error fetching images:", error);
-                // Mark all as loaded on error
-                const loadedMap: Record<string, boolean> = {};
-                Object.keys(currentQuestion.options).forEach((key) => {
-                    loadedMap[key] = true;
-                });
-                setLoadedImages(loadedMap);
-            }
-        };
-
-        fetchImages();
-    }, [currentQuestion]);
-
-    const startSurvey = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`${API_URL}/api/start`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!response.ok) throw new Error("Failed to start survey");
-
-            const data = await response.json();
-            setCurrentQuestion(data.question);
-            setError(null);
-        } catch (err) {
-            setError("Failed to load survey. Please try again.");
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleAnswer = async (optionKey: string) => {
-        if (!currentQuestion) return;
-
-        setSelectedOption(optionKey);
-
-        // Check if this is a change to an existing answer
-        const isChangingAnswer = answeredQuestions.includes(currentQuestion.id);
-
-        if (isChangingAnswer) {
-            // User is changing a previous answer
-            // Find the index of this question
-            const questionIndex = answeredQuestions.indexOf(currentQuestion.id);
-
-            // Remove all answers after this point
-            const newAnsweredQuestions = answeredQuestions.slice(
-                0,
-                questionIndex + 1
-            );
-            const newUserAnswers: Record<number, UserAnswer> = {};
-
-            // Keep only answers up to this question
-            newAnsweredQuestions.forEach((qId) => {
-                if (qId !== currentQuestion.id && userAnswers[qId]) {
-                    newUserAnswers[qId] = userAnswers[qId];
+                if (data.recommendations) {
+                    // Pass the raw data (recommendations array) instead of markdown
+                    setRecommendations(data.rawData || data);
+                    setCurrentStep(currentStep + 1);
+                } else {
+                    setError(
+                        "Failed to generate recommendations. Please try again."
+                    );
                 }
-            });
-
-            // Add the new answer for this question
-            const optionData = currentQuestion.options[optionKey];
-            newUserAnswers[currentQuestion.id] = {
-                selected_option: optionKey,
-                category: optionData.category,
-                careers: optionData.careers,
-                text: optionData.text,
-            };
-
-            // Update question history
-            const newQuestionHistory = questionHistory.slice(
-                0,
-                questionIndex + 1
-            );
-
-            setAnsweredQuestions(newAnsweredQuestions);
-            setUserAnswers(newUserAnswers);
-            setQuestionHistory(newQuestionHistory);
-
-            // Get next question based on new answer
-            await getNextQuestion(newAnsweredQuestions, newUserAnswers);
-        } else {
-            // Normal flow - answering a new question
-            const optionData = currentQuestion.options[optionKey];
-            const newAnswer: UserAnswer = {
-                selected_option: optionKey,
-                category: optionData.category,
-                careers: optionData.careers,
-                text: optionData.text,
-            };
-
-            const newAnsweredQuestions = [
-                ...answeredQuestions,
-                currentQuestion.id,
-            ];
-            const newUserAnswers = {
-                ...userAnswers,
-                [currentQuestion.id]: newAnswer,
-            };
-
-            const newQuestionHistory = [...questionHistory, currentQuestion];
-
-            setAnsweredQuestions(newAnsweredQuestions);
-            setUserAnswers(newUserAnswers);
-            setQuestionHistory(newQuestionHistory);
-            setFutureQuestions([]);
-
-            // Get next question
-            await getNextQuestion(newAnsweredQuestions, newUserAnswers);
-        }
-    };
-
-    const getNextQuestion = async (
-        answered: number[],
-        answers: Record<number, UserAnswer>
-    ) => {
-        try {
-            setLoading(true);
-            const response = await fetch(`${API_URL}/api/answer`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    answered_questions: answered,
-                    user_answers: answers,
-                }),
-            });
-
-            if (!response.ok) throw new Error("Failed to get next question");
-
-            const data = await response.json();
-
-            if (data.completed) {
-                // Survey completed - show results
-                setCompleted(true);
-            } else {
-                setCurrentQuestion(data.question);
-                setSelectedOption(null);
-            }
-        } catch (err) {
-            setError("Failed to load next question. Please try again.");
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handlePrevious = () => {
-        if (questionHistory.length === 0) return;
-
-        // Get the previous question from history
-        const previousQuestion = questionHistory[questionHistory.length - 1];
-
-        // Save current question to future stack
-        if (currentQuestion) {
-            setFutureQuestions([currentQuestion, ...futureQuestions]);
-        }
-
-        // Remove the current question from answered questions if it was answered
-        let newAnsweredQuestions = [...answeredQuestions];
-        const newUserAnswers = { ...userAnswers };
-
-        // If current question was answered, remove it
-        if (currentQuestion && answeredQuestions.includes(currentQuestion.id)) {
-            newAnsweredQuestions = newAnsweredQuestions.filter(
-                (id) => id !== currentQuestion.id
-            );
-            delete newUserAnswers[currentQuestion.id];
-        }
-
-        setAnsweredQuestions(newAnsweredQuestions);
-        setUserAnswers(newUserAnswers);
-        setQuestionHistory(questionHistory.slice(0, -1));
-        setCurrentQuestion(previousQuestion);
-    };
-
-    const handleNext = () => {
-        if (futureQuestions.length === 0) return;
-
-        // Get the next question from future stack
-        const nextQuestion = futureQuestions[0];
-
-        // Move current question back to history
-        if (currentQuestion) {
-            setQuestionHistory([...questionHistory, currentQuestion]);
-
-            // Re-add answer if it exists
-            if (userAnswers[currentQuestion.id]) {
-                setAnsweredQuestions([
-                    ...answeredQuestions,
-                    currentQuestion.id,
-                ]);
+            } catch (err) {
+                setError(
+                    "Failed to generate recommendations. Please try again."
+                );
+            } finally {
+                setLoading(false);
             }
         }
-
-        setFutureQuestions(futureQuestions.slice(1));
-        setCurrentQuestion(nextQuestion);
     };
 
-    if (loading && !currentQuestion) {
+    const handleBack = () => {
+        if (currentStep > 0 && !loading) {
+            setCurrentStep(currentStep - 1);
+            const newAnswers = answers.slice(0, -1);
+            setAnswers(newAnswers);
+        }
+    };
+
+    const handleStartOver = () => {
+        setCurrentStep(0);
+        setAnswers([]);
+        setSelectedOption(null);
+        setRecommendations(null);
+        setError(null);
+    };
+
+    // Show loading state while fetching questions
+    if (loading && questions.length === 0) {
         return (
-            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-sm sm:w-md mx-2 md:mx-auto">
-                <p className="text-center">Loading survey...</p>
+            <div className="w-full h-full flex items-center justify-center p-4 sm:p-6">
+                <Card className="w-full max-w-3xl shadow-lg border-2">
+                    <CardContent className="py-16">
+                        <div className="flex flex-col items-center justify-center space-y-6">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                                <Loader2 className="relative h-12 w-12 animate-spin text-primary" />
+                            </div>
+                            <div className="text-center space-y-2">
+                                <p className="text-lg font-semibold text-foreground">
+                                    Loading Career Assessment
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Preparing your personalized questions...
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
 
-    if (error) {
+    // Show error state
+    if (error && questions.length === 0) {
         return (
-            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-sm sm:w-md mx-auto">
-                <p className="text-center text-destructive">{error}</p>
-                <button
-                    onClick={startSurvey}
-                    className="text-primary underline"
-                >
-                    Retry
-                </button>
+            <div className="w-full h-full flex items-center justify-center p-4 sm:p-6">
+                <Card className="w-full max-w-3xl shadow-lg border-2 border-destructive/50">
+                    <CardContent className="py-16">
+                        <div className="flex flex-col items-center justify-center space-y-6">
+                            <div className="p-4 bg-destructive/10 rounded-full">
+                                <svg
+                                    className="h-12 w-12 text-destructive"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="text-center space-y-2">
+                                <p className="text-lg font-semibold text-destructive">
+                                    {error}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Please try again
+                                </p>
+                            </div>
+                            <Button
+                                onClick={loadQuestions}
+                                size="lg"
+                                className="font-semibold"
+                            >
+                                Retry Loading
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
 
-    if (!currentQuestion) {
-        return null;
+    // Show recommendations
+    if (recommendations) {
+        return (
+            <Careers
+                recommendations={recommendations}
+                onStartOver={handleStartOver}
+            />
+        );
     }
-
-    // Show results when completed
-    if (completed) {
-        return <Careers userAnswers={userAnswers} />;
-    }
-
-    const optionKeys = Object.keys(currentQuestion.options);
 
     return (
-        <>
-            <PaginateButton
-                dir={"left"}
-                show={questionHistory.length > 0}
-                onClick={handlePrevious}
-            />
-            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-sm sm:w-md mx-2 md:mx-auto">
-                <div className="p-2 rounded bg-accent w-fit text-sm">
-                    Q{questionHistory.length + 1}
-                </div>
-                <p className="font-semibold capitalize text-lg">
-                    {currentQuestion.question}
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                    {optionKeys.map((key) => (
-                        <Button
-                            key={key}
-                            onClick={() => handleAnswer(key)}
-                            disabled={loading}
-                            backgroundImage={optionImages[key]}
-                            imageLoading={!loadedImages[key]}
-                            className={` aspect-square ${
-                                selectedOption === key
-                                    ? "ring-2 ring-primary "
-                                    : ""
-                            }`}
-                        >
-                            {currentQuestion.options[key].text}
-                        </Button>
-                    ))}
-                </div>
-                {loading && (
-                    <p className="text-sm text-muted-foreground text-center">
-                        Loading next question...
-                    </p>
-                )}
-            </div>
-            <PaginateButton
-                dir={"right"}
-                show={futureQuestions.length > 0}
-                onClick={handleNext}
-            />
-        </>
+        <div className="w-full h-full flex items-center justify-center p-4 sm:p-6">
+            <Card className="w-full max-w-3xl shadow-lg border-2">
+                <CardHeader className="space-y-4 pb-6">
+                    <div className="space-y-2">
+                        <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                            Career Consultant
+                        </CardTitle>
+                        <CardDescription className="text-base">
+                            Answer {totalSteps} questions to discover your ideal
+                            career path
+                        </CardDescription>
+                    </div>
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-muted-foreground">
+                                Question {currentStep + 1} of {totalSteps}
+                            </span>
+                            <span className="text-sm font-semibold text-primary">
+                                {Math.round(
+                                    ((currentStep + 1) / totalSteps) * 100
+                                )}
+                                % Complete
+                            </span>
+                        </div>
+                        <div className="relative w-full bg-secondary/50 rounded-full h-3 overflow-hidden">
+                            <div
+                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out"
+                                style={{
+                                    width: `${((currentStep + 1) / totalSteps) * 100}%`,
+                                }}
+                            />
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-6 pb-8">
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="text-muted-foreground">
+                                Generating your personalized recommendations...
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-8">
+                            <div className="space-y-4">
+                                <div className="inline-block px-3 py-1 bg-primary/10 rounded-full">
+                                    <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                                        {questions[currentStep].category}
+                                    </span>
+                                </div>
+                                <h2 className="text-xl font-bold text-foreground leading-relaxed">
+                                    {questions[currentStep].text}
+                                </h2>
+                            </div>
+
+                            <div className="grid gap-3">
+                                {questions[currentStep].options.map(
+                                    (option) => (
+                                        <button
+                                            key={option.id}
+                                            onClick={() =>
+                                                handleOptionSelect(
+                                                    option.id,
+                                                    option.text
+                                                )
+                                            }
+                                            disabled={loading}
+                                            className="group relative w-full text-left p-4 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-primary/5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <div className="flex items-start gap-4">
+                                                <div className="relative flex-shrink-0 w-6 h-6 mt-0.5">
+                                                    <div className="absolute inset-0 rounded-full border-2 border-muted-foreground group-hover:border-primary transition-colors" />
+                                                    {selectedOption ===
+                                                        option.id && (
+                                                        <CheckCircle2 className="absolute inset-0 h-6 w-6 text-primary animate-in zoom-in-50 duration-200" />
+                                                    )}
+                                                </div>
+                                                <span className="flex-1 text-base font-medium text-foreground group-hover:text-primary transition-colors">
+                                                    {option.text}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    )
+                                )}
+                            </div>
+
+                            {error && (
+                                <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                                    {error}
+                                </div>
+                            )}
+
+                            {/* Show previous answers */}
+                            {answers.length > 0 && (
+                                <div className="space-y-4 pt-6 border-t-2 border-dashed">
+                                    <button
+                                        onClick={() => {
+                                            const el =
+                                                document.getElementById(
+                                                    "previous-answers"
+                                                );
+                                            el?.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "nearest",
+                                            });
+                                        }}
+                                        className="flex items-center justify-between w-full p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                                    >
+                                        <h3 className="text-sm font-semibold text-foreground">
+                                            Previous Answers
+                                        </h3>
+                                        <span className="text-xs font-medium px-2 py-1 bg-primary/20 text-primary rounded-full">
+                                            {answers.length}
+                                        </span>
+                                    </button>
+                                    <div
+                                        id="previous-answers"
+                                        className="space-y-2 max-h-[180px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent"
+                                    >
+                                        {answers.map((item, idx) => {
+                                            const question = questions[idx];
+                                            const selectedOpt =
+                                                question?.options.find(
+                                                    (opt) =>
+                                                        opt.id === item.optionId
+                                                );
+                                            return (
+                                                <div
+                                                    key={idx}
+                                                    className="p-3 bg-secondary/40 rounded-lg border border-border/50 hover:border-primary/50 transition-colors"
+                                                >
+                                                    <p className="font-medium text-xs text-muted-foreground mb-1.5">
+                                                        Q{idx + 1}:{" "}
+                                                        {question?.text}
+                                                    </p>
+                                                    <p className="text-sm font-medium text-foreground">
+                                                        {selectedOpt?.text}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {currentStep > 0 && (
+                                <Button
+                                    variant="outline"
+                                    onClick={handleBack}
+                                    disabled={loading}
+                                    className="w-full h-11 font-semibold border-2 hover:bg-secondary hover:border-primary transition-all"
+                                >
+                                    ← Back to Previous Question
+                                </Button>
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
     );
 };

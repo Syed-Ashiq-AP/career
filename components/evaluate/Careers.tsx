@@ -1,155 +1,407 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import CareerCard from "./career-card";
-import { redirect } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
-
-interface UserAnswer {
-    selected_option: string;
-    category: string;
-    careers: string[];
-    text: string;
-}
-
-interface CareerResult {
-    career: string;
-    mentions: number;
-    description?: string;
-    category?: string;
-}
-
-interface CategoryResult {
-    category: string;
-    score: number;
-    percentage: number;
-    description: string;
-}
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+    ArrowLeft,
+    TrendingUp,
+    Shield,
+    Briefcase,
+    GraduationCap,
+    Lightbulb,
+    Target,
+    Sparkles,
+    Award,
+    BookOpen,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface CareersProps {
-    userAnswers: Record<number, UserAnswer>;
+    recommendations: any;
+    onStartOver: () => void;
 }
 
-export const Careers = ({ userAnswers }: CareersProps) => {
-    const [careers, setCareers] = useState<CareerResult[]>([]);
-    const [categories, setCategories] = useState<CategoryResult[]>([]);
-    const [summary, setSummary] = useState<string>("");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+export const Careers = ({ recommendations, onStartOver }: CareersProps) => {
+    const router = useRouter();
 
-    useEffect(() => {
-        fetchResults();
-    }, []);
+    // Handle both rawData object and direct array
+    const data = recommendations?.recommendations || recommendations;
+    const careers = Array.isArray(data) ? data : [];
 
-    const fetchResults = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`${API_URL}/api/results`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    user_answers: userAnswers,
-                }),
-            });
-
-            if (!response.ok) throw new Error("Failed to fetch results");
-
-            const data = await response.json();
-            setCareers(data.careers || []);
-            setSummary(data.summary || "");
-            setCategories(data.categories || []);
-            setError(null);
-        } catch (err) {
-            setError(
-                "Failed to load career recommendations. Please try again."
-            );
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+    const handleGuide = (career: any) => {
+        // Save career details to localStorage
+        localStorage.setItem("survey-query", career.career);
+        // Redirect to home page
+        router.push("/");
     };
 
-    const handleGuide = async (career: string) => {
-        localStorage.setItem("survey-query", career);
-        redirect("/");
+    const getConfidenceColor = (confidence: number) => {
+        if (confidence >= 0.8)
+            return "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20";
+        if (confidence >= 0.5)
+            return "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20";
+        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20";
     };
 
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center gap-4 p-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                <p className="text-muted-foreground">
-                    Analyzing your answers...
-                </p>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="flex flex-col items-center justify-center gap-4 p-8">
-                <p className="text-destructive">{error}</p>
-                <button
-                    onClick={fetchResults}
-                    className="text-primary underline"
-                >
-                    Retry
-                </button>
-            </div>
-        );
-    }
-
-    const topCareers = careers.slice(0, 3);
+    const getMatchColor = (score: number) => {
+        if (score >= 85) return "text-green-600 dark:text-green-400";
+        if (score >= 70) return "text-blue-600 dark:text-blue-400";
+        return "text-yellow-600 dark:text-yellow-400";
+    };
 
     return (
-        <div className="flex flex-col items-center gap-6 p-4 w-fit mx-auto overflow-y-auto py-5">
-            <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold">Your Top Career Matches</h1>
-                <p className="text-muted-foreground">
-                    AI-powered analysis based on your answers
-                </p>
-                {summary && (
-                    <p className="text-sm text-muted-foreground max-w-2xl mx-auto mt-2">
-                        {summary}
-                    </p>
-                )}
-            </div>
-
-            {categories.length > 0 && (
-                <div className="w-full bg-card rounded-lg p-4 border">
-                    <h2 className="text-xl font-semibold mb-3">Your Profile</h2>
-                    <div className="space-y-2">
-                        {categories.map((cat, index) => (
-                            <div
-                                key={index}
-                                className="flex items-center justify-between"
-                            >
-                                <span className="font-medium">
-                                    {cat.category}
-                                </span>
-                                <span className="text-muted-foreground">
-                                    {cat.percentage}%
-                                </span>
+        <div className="w-full h-full overflow-y-auto bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
+                {/* Header */}
+                <Card className="border-2 shadow-lg bg-gradient-to-br from-card to-primary/5">
+                    <CardHeader>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="h-6 w-6 text-primary" />
+                                    <CardTitle className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary via-primary to-primary/60 bg-clip-text text-transparent">
+                                        Your Career Matches
+                                    </CardTitle>
+                                </div>
+                                <CardDescription className="text-base">
+                                    Personalized recommendations for your unique
+                                    profile
+                                </CardDescription>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+                            <Button
+                                variant="outline"
+                                onClick={onStartOver}
+                                className="shrink-0 border-2 hover:bg-primary hover:text-primary-foreground font-semibold transition-all"
+                            >
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Retake Survey
+                            </Button>
+                        </div>
+                    </CardHeader>
+                </Card>
 
-            <div className="flex flex-wrap gap-6 mx-auto items-center justify-center">
-                {topCareers.map((career, index) => {
-                    return (
-                        <CareerCard
-                            key={career.career}
-                            career={career.career}
-                            rank={index + 1}
-                            match={career.mentions}
-                            description={career.description || ""}
-                            onGuide={handleGuide}
-                            isLoading={false}
-                        />
-                    );
-                })}
+                {/* Career Cards */}
+                <div className="space-y-6">
+                    {careers.map((career: any, index: number) => (
+                        <Card
+                            key={index}
+                            className="border-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/50 overflow-hidden"
+                        >
+                            <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent pb-4">
+                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                                    <div className="space-y-3 flex-1">
+                                        <div className="flex items-center gap-3 flex-wrap">
+                                            <Badge
+                                                variant="outline"
+                                                className="text-lg font-bold px-3 py-1 bg-primary/10"
+                                            >
+                                                #{index + 1}
+                                            </Badge>
+                                            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+                                                {career.career}
+                                            </h2>
+                                        </div>
+                                        <p className="text-base text-muted-foreground leading-relaxed">
+                                            {career.description}
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col gap-2 shrink-0">
+                                        <Badge
+                                            className={`text-lg font-bold px-4 py-2 ${getMatchColor(career.match_percentage)}`}
+                                            variant="outline"
+                                        >
+                                            {career.match_percentage}% Match
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </CardHeader>
+
+                            <CardContent className="pt-6 space-y-6">
+                                {/* Salary & Career Info */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="flex items-start gap-3 p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                                        <Briefcase className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground mb-1">
+                                                Salary Range
+                                            </p>
+                                            <p className="font-bold text-foreground">
+                                                {career.salary_range}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                                        <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground mb-1">
+                                                Growth Potential
+                                            </p>
+                                            <p className="font-bold text-foreground capitalize">
+                                                {career.growth_potential?.replace(
+                                                    /-/g,
+                                                    " "
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3 p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                                        <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-0.5" />
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground mb-1">
+                                                Job Security
+                                            </p>
+                                            <p className="font-bold text-foreground capitalize">
+                                                {career.job_security?.replace(
+                                                    /-/g,
+                                                    " "
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Skills */}
+                                {career.skills && career.skills.length > 0 && (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <Award className="h-5 w-5 text-primary" />
+                                            <h3 className="text-lg font-semibold text-foreground">
+                                                Key Skills Required
+                                            </h3>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {career.skills.map(
+                                                (
+                                                    skill: string,
+                                                    idx: number
+                                                ) => (
+                                                    <Badge
+                                                        key={idx}
+                                                        variant="secondary"
+                                                        className="px-3 py-1.5 text-sm font-medium capitalize"
+                                                    >
+                                                        {skill.replace(
+                                                            /-/g,
+                                                            " "
+                                                        )}
+                                                    </Badge>
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Education */}
+                                {career.education &&
+                                    career.education.length > 0 && (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <GraduationCap className="h-5 w-5 text-primary" />
+                                                <h3 className="text-lg font-semibold text-foreground">
+                                                    Education Path
+                                                </h3>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {career.education.map(
+                                                    (
+                                                        edu: string,
+                                                        idx: number
+                                                    ) => (
+                                                        <Badge
+                                                            key={idx}
+                                                            variant="outline"
+                                                            className="px-3 py-1.5 text-sm font-medium uppercase"
+                                                        >
+                                                            {edu}
+                                                        </Badge>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                {/* Interests & Work Style */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {career.interests &&
+                                        career.interests.length > 0 && (
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Lightbulb className="h-5 w-5 text-primary" />
+                                                    <h3 className="text-base font-semibold text-foreground">
+                                                        Matches Your Interests
+                                                    </h3>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {career.interests.map(
+                                                        (
+                                                            interest: string,
+                                                            idx: number
+                                                        ) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="flex items-center gap-2 text-sm text-muted-foreground"
+                                                            >
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                                <span className="capitalize">
+                                                                    {interest.replace(
+                                                                        /-/g,
+                                                                        " "
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    {career.work_style &&
+                                        career.work_style.length > 0 && (
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Target className="h-5 w-5 text-primary" />
+                                                    <h3 className="text-base font-semibold text-foreground">
+                                                        Work Environment
+                                                    </h3>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {career.work_style.map(
+                                                        (
+                                                            style: string,
+                                                            idx: number
+                                                        ) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="flex items-center gap-2 text-sm text-muted-foreground"
+                                                            >
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                                <span className="capitalize">
+                                                                    {style.replace(
+                                                                        /-/g,
+                                                                        " "
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                </div>
+
+                                {/* Guide Button */}
+                                <div className="pt-4 border-t">
+                                    <Button
+                                        onClick={() => handleGuide(career)}
+                                        className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all"
+                                        size="lg"
+                                    >
+                                        <BookOpen className="mr-2 h-5 w-5" />
+                                        Get AI Career Guide
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Next Steps */}
+                <Card className="border-2 shadow-lg bg-gradient-to-br from-primary/5 to-card">
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                            <Target className="h-6 w-6 text-primary" />
+                            Your Action Plan
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">
+                                🎯 This Week
+                            </h3>
+                            <ul className="space-y-2 ml-4">
+                                <li className="flex items-start gap-3">
+                                    <span className="text-primary mt-1">→</span>
+                                    <span className="text-muted-foreground">
+                                        Research your top 2-3 career choices in
+                                        depth
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="text-primary mt-1">→</span>
+                                    <span className="text-muted-foreground">
+                                        Connect with professionals on LinkedIn
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="text-primary mt-1">→</span>
+                                    <span className="text-muted-foreground">
+                                        Browse online courses (Coursera, Udemy,
+                                        NPTEL)
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">
+                                📅 1-6 Months
+                            </h3>
+                            <ul className="space-y-2 ml-4">
+                                <li className="flex items-start gap-3">
+                                    <span className="text-primary mt-1">→</span>
+                                    <span className="text-muted-foreground">
+                                        Enroll in certification programs
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="text-primary mt-1">→</span>
+                                    <span className="text-muted-foreground">
+                                        Build portfolio/gain internship
+                                        experience
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="text-primary mt-1">→</span>
+                                    <span className="text-muted-foreground">
+                                        Join professional communities and forums
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">
+                                🚀 1-3 Years
+                            </h3>
+                            <ul className="space-y-2 ml-4">
+                                <li className="flex items-start gap-3">
+                                    <span className="text-primary mt-1">→</span>
+                                    <span className="text-muted-foreground">
+                                        Complete formal education or specialized
+                                        training
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="text-primary mt-1">→</span>
+                                    <span className="text-muted-foreground">
+                                        Gain 1-2 years of practical experience
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="text-primary mt-1">→</span>
+                                    <span className="text-muted-foreground">
+                                        Develop specialized expertise in your
+                                        field
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
