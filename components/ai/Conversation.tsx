@@ -19,6 +19,12 @@ import {
     MessageSquare,
     Code,
     Book,
+    MapPin,
+    Trophy,
+    IndianRupee,
+    Timer,
+    TriangleAlert,
+    Sparkles,
 } from "lucide-react";
 import {
     AIMessage,
@@ -390,16 +396,20 @@ export function Conversation({
                                     >
                                         <div className="flex items-start gap-3">
                                             <GraduationCap className="w-5 h-5 mt-1 shrink-0 text-primary" />
-                                            <div className="flex-1">
+                                            <div className="flex-1 space-y-2">
                                                 <h3 className="font-semibold text-lg">
                                                     {college.name}
                                                 </h3>
-                                                <div className="text-sm text-muted-foreground mt-1">
-                                                    📍 {college.location}
-                                                </div>
+                                                {college.location && (
+                                                    <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                        <MapPin size={18} />
+                                                        {college.location}
+                                                    </div>
+                                                )}
                                                 {college.ranking && (
-                                                    <div className="text-sm text-muted-foreground">
-                                                        🏆 {college.ranking}
+                                                    <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                        <Trophy size={18} />
+                                                        {college.ranking}
                                                     </div>
                                                 )}
                                                 <div className="mt-2">
@@ -451,9 +461,13 @@ export function Conversation({
                                                 <h3 className="font-semibold text-lg">
                                                     {career.title}
                                                 </h3>
+
                                                 {career.avgSalary && (
-                                                    <div className="text-sm text-muted-foreground mt-1">
-                                                        💰 {career.avgSalary}
+                                                    <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                        <IndianRupee
+                                                            size={18}
+                                                        />
+                                                        {career.avgSalary}
                                                     </div>
                                                 )}
                                                 <p className="mt-2 text-sm">
@@ -496,10 +510,17 @@ export function Conversation({
                                                                 insight.experienceLevel
                                                             }
                                                         </h4>
-                                                        <div className="text-sm text-muted-foreground">
-                                                            📍{" "}
-                                                            {insight.location}
-                                                        </div>
+
+                                                        {insight.location && (
+                                                            <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                                <MapPin
+                                                                    size={18}
+                                                                />
+                                                                {
+                                                                    insight.location
+                                                                }
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="text-right">
                                                         <div className="font-bold text-lg text-primary">
@@ -566,9 +587,13 @@ export function Conversation({
                                                     {company.companySize &&
                                                         `• ${company.companySize}`}
                                                 </div>
-                                                <div className="text-sm text-muted-foreground">
-                                                    📍 {company.location}
-                                                </div>
+
+                                                {company.location && (
+                                                    <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                        <MapPin size={18} />
+                                                        {company.location}
+                                                    </div>
+                                                )}
                                                 <div className="mt-2">
                                                     <div className="font-medium text-sm mb-1">
                                                         Hiring for:
@@ -617,8 +642,9 @@ export function Conversation({
                                                     {idx + 1}
                                                 </div>
                                                 {idx <
-                                                    tools.provide_career_roadmap
-                                                        .phases.length -
+                                                    (tools
+                                                        .provide_career_roadmap
+                                                        ?.phases.length ?? 0) -
                                                         1 && (
                                                     <div className="w-0.5 h-16 bg-primary/30 my-2"></div>
                                                 )}
@@ -629,14 +655,17 @@ export function Conversation({
                                                     <h4 className="font-semibold text-lg">
                                                         {phase.phase}
                                                     </h4>
-                                                    <span className="text-sm text-muted-foreground ml-auto">
-                                                        ⏱ {phase.duration}
+
+                                                    <span className="flex gap-2 items-center text-sm text-muted-foreground ml-auto">
+                                                        <Timer size={18} />
+                                                        {phase.duration}
                                                     </span>
                                                 </div>
 
                                                 <div className="mt-3">
-                                                    <div className="font-medium text-sm mb-2">
-                                                        🎯 Skills to Develop:
+                                                    <div className="flex gap-2 items-center font-medium text-sm mb-2">
+                                                        <Target size={18} />
+                                                        Skills to Develop:
                                                     </div>
                                                     <div className="flex flex-wrap gap-2 mb-3">
                                                         {phase.skills.map(
@@ -656,8 +685,9 @@ export function Conversation({
                                                 </div>
 
                                                 <div className="mt-3">
-                                                    <div className="font-medium text-sm mb-2">
-                                                        🏆 Milestones:
+                                                    <div className="flex gap-2 items-center font-medium text-sm mb-2">
+                                                        <Trophy size={18} />
+                                                        Milestones:
                                                     </div>
                                                     <ul className="space-y-1 ml-4">
                                                         {phase.milestones.map(
@@ -677,8 +707,11 @@ export function Conversation({
                                                 </div>
 
                                                 <div className="mt-3">
-                                                    <div className="font-medium text-sm mb-2">
-                                                        📚 Learning Resources:
+                                                    <div className="flex gap-2 items-center text-sm font-medium">
+                                                        <IndianRupee
+                                                            size={18}
+                                                        />
+                                                        Learning Resources:
                                                     </div>
                                                     <ul className="space-y-1 ml-4">
                                                         {phase.resources.map(
@@ -761,12 +794,16 @@ export function Conversation({
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-4 text-muted-foreground">
-                                                        <span>
-                                                            ⏱ {course.duration}
-                                                        </span>
-                                                        <span>
-                                                            💰 {course.cost}
-                                                        </span>
+                                                        <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                            <Timer size={18} />
+                                                            {course.duration}
+                                                        </div>
+                                                        <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                            <IndianRupee
+                                                                size={18}
+                                                            />
+                                                            {course.cost}
+                                                        </div>
                                                     </div>
                                                     {course.url && (
                                                         <a
@@ -811,10 +848,12 @@ export function Conversation({
 
                                                 <div className="mb-4">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                                                            ⚠️ Required
-                                                            (Must-Have)
-                                                        </span>
+                                                        <div className="flex gap-2 items-center text-sm font-medium">
+                                                            <TriangleAlert
+                                                                size={18}
+                                                            />
+                                                            Required (Must-Have)
+                                                        </div>
                                                     </div>
                                                     <div className="flex flex-wrap gap-2">
                                                         {category.required.map(
@@ -849,10 +888,13 @@ export function Conversation({
 
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                                            ✨ Recommended
+                                                        <div className="flex gap-2 items-center text-sm font-medium">
+                                                            <Sparkles
+                                                                size={18}
+                                                            />
+                                                            Recommended
                                                             (Good-to-Have)
-                                                        </span>
+                                                        </div>
                                                     </div>
                                                     <div className="flex flex-wrap gap-2">
                                                         {category.recommended.map(
@@ -938,12 +980,16 @@ export function Conversation({
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-4 text-muted-foreground">
-                                                        <span>
-                                                            ⏱ {cert.duration}
-                                                        </span>
-                                                        <span>
-                                                            💰 {cert.cost}
-                                                        </span>
+                                                        <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                            <Timer size={18} />
+                                                            {cert.duration}
+                                                        </div>
+                                                        <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                            <IndianRupee
+                                                                size={18}
+                                                            />
+                                                            {cert.cost}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1064,10 +1110,10 @@ export function Conversation({
                                                     {project.description}
                                                 </p>
                                                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                                                    <span>
-                                                        ⏱{" "}
+                                                    <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                                                        <Timer size={18} />
                                                         {project.estimatedTime}
-                                                    </span>
+                                                    </div>
                                                 </div>
                                                 <div className="flex flex-wrap gap-2">
                                                     {project.techStack
