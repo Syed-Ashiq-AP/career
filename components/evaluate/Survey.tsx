@@ -20,6 +20,7 @@ interface Question {
     options: {
         id: string;
         text: string;
+        description: string;
     }[];
 }
 
@@ -211,8 +212,8 @@ export const Survey = () => {
     }
 
     return (
-        <div className="w-full h-full flex items-center justify-center p-4 sm:p-6">
-            <Card className="w-full max-w-3xl shadow-lg border-2">
+        <div className="w-full h-full flex p-4 sm:p-6 overflow-hidden">
+            <Card className="w-full max-w-3xl shadow-lg border-2 mx-auto">
                 <CardHeader className="space-y-4 pb-6">
                     <div className="space-y-2">
                         <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -245,7 +246,7 @@ export const Survey = () => {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="space-y-6 pb-8">
+                <CardContent className="space-y-6 pb-8 overflow-y-auto">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-12 space-y-4">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -254,7 +255,7 @@ export const Survey = () => {
                             </p>
                         </div>
                     ) : (
-                        <div className="space-y-8">
+                        <div className="space-y-8 flex flex-col h-full overflow-y-hidden">
                             <div className="space-y-4">
                                 <div className="inline-block px-3 py-1 bg-primary/10 rounded-full">
                                     <span className="text-xs font-semibold text-primary uppercase tracking-wider">
@@ -266,7 +267,7 @@ export const Survey = () => {
                                 </h2>
                             </div>
 
-                            <div className="grid gap-3">
+                            <div className="flex flex-col gap-3 overflow-y-auto">
                                 {questions[currentStep].options.map(
                                     (option) => (
                                         <button
@@ -281,16 +282,23 @@ export const Survey = () => {
                                             className="group relative w-full text-left p-4 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-primary/5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <div className="flex items-start gap-4">
-                                                <div className="relative flex-shrink-0 w-6 h-6 mt-0.5">
+                                                <div className="relative shrink-0 w-6 h-6 mt-0.5">
                                                     <div className="absolute inset-0 rounded-full border-2 border-muted-foreground group-hover:border-primary transition-colors" />
                                                     {selectedOption ===
                                                         option.id && (
                                                         <CheckCircle2 className="absolute inset-0 h-6 w-6 text-primary animate-in zoom-in-50 duration-200" />
                                                     )}
                                                 </div>
-                                                <span className="flex-1 text-base font-medium text-foreground group-hover:text-primary transition-colors">
-                                                    {option.text}
-                                                </span>
+                                                <div className="flex-1 space-y-1.5">
+                                                    <span className="block text-base font-medium text-foreground group-hover:text-primary transition-colors">
+                                                        {option.text}
+                                                    </span>
+                                                    {option.description && (
+                                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                                            {option.description}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
                                         </button>
                                     )
