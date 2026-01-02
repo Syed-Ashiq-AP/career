@@ -211,31 +211,46 @@ export function Conversation({
                         {userMessage}
                     </div>
                 </div>
-                <TabsList className="flex-wrap w-full h-auto sticky top-0 shadow-lg z-10 rounded-none py-2 rounded-b-lg mb-2">
-                    <TabsTrigger value="summary">
+                <TabsList className="flex-wrap w-full space-x-0.5 h-auto sticky top-0 shadow-lg z-10 rounded-none py-2 rounded-b-lg mb-2">
+                    <TabsTrigger
+                        className="cursor-pointer hover:bg-card"
+                        value="summary"
+                    >
                         <FileSpreadsheet className="size-5 mr-1" />
                         <span className="hidden md:inline">Summary</span>
                     </TabsTrigger>
                     {tools.provide_sources && (
-                        <TabsTrigger value="sources">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="sources"
+                        >
                             <BookOpen className="size-5 mr-1" />
                             <span className="hidden md:inline">Sources</span>
                         </TabsTrigger>
                     )}
                     {tools.suggest_videos && (
-                        <TabsTrigger value="videos">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="videos"
+                        >
                             <Play className="size-5 mr-1" />
                             <span className="hidden md:inline">Videos</span>
                         </TabsTrigger>
                     )}
                     {tools.list_colleges && (
-                        <TabsTrigger value="colleges">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="colleges"
+                        >
                             <GraduationCap className="size-5 mr-1" />
                             <span className="hidden md:inline">Colleges</span>
                         </TabsTrigger>
                     )}
                     {tools.suggest_related_careers && (
-                        <TabsTrigger value="careers">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="careers"
+                        >
                             <Briefcase className="size-5 mr-1" />
                             <span className="hidden md:inline">
                                 Related Careers
@@ -243,7 +258,10 @@ export function Conversation({
                         </TabsTrigger>
                     )}
                     {tools.provide_salary_insights && (
-                        <TabsTrigger value="salary">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="salary"
+                        >
                             <DollarSign className="size-5 mr-1" />
                             <span className="hidden md:inline">
                                 Salary Insights
@@ -251,31 +269,46 @@ export function Conversation({
                         </TabsTrigger>
                     )}
                     {tools.list_companies && (
-                        <TabsTrigger value="companies">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="companies"
+                        >
                             <Building2 className="size-5 mr-1" />
                             <span className="hidden md:inline">Companies</span>
                         </TabsTrigger>
                     )}
                     {tools.provide_career_roadmap && (
-                        <TabsTrigger value="roadmap">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="roadmap"
+                        >
                             <Map className="size-5 mr-1" />
                             <span className="hidden md:inline">Roadmap</span>
                         </TabsTrigger>
                     )}
                     {tools.suggest_courses && (
-                        <TabsTrigger value="courses">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="courses"
+                        >
                             <BookMarked className="size-5 mr-1" />
                             <span className="hidden md:inline">Courses</span>
                         </TabsTrigger>
                     )}
                     {tools.provide_required_skills && (
-                        <TabsTrigger value="skills">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="skills"
+                        >
                             <Target className="size-5 mr-1" />
                             <span className="hidden md:inline">Skills</span>
                         </TabsTrigger>
                     )}
                     {tools.suggest_certifications && (
-                        <TabsTrigger value="certifications">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="certifications"
+                        >
                             <Award className="size-5 mr-1" />
                             <span className="hidden md:inline">
                                 Certifications
@@ -283,19 +316,28 @@ export function Conversation({
                         </TabsTrigger>
                     )}
                     {tools.provide_interview_tips && (
-                        <TabsTrigger value="interview">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="interview"
+                        >
                             <MessageSquare className="size-5 mr-1" />
                             <span className="hidden md:inline">Interview</span>
                         </TabsTrigger>
                     )}
                     {tools.suggest_projects && (
-                        <TabsTrigger value="projects">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="projects"
+                        >
                             <Code className="size-5 mr-1" />
                             <span className="hidden md:inline">Projects</span>
                         </TabsTrigger>
                     )}
                     {tools.recommend_books && (
-                        <TabsTrigger value="books">
+                        <TabsTrigger
+                            className="cursor-pointer hover:bg-card"
+                            value="books"
+                        >
                             <Book className="size-5 mr-1" />
                             <span className="hidden md:inline">Books</span>
                         </TabsTrigger>
@@ -1217,228 +1259,241 @@ export function Conversation({
                             {selectedItem?.type === "book" &&
                                 selectedItem.title}
                         </DialogTitle>
-                        <DialogDescription>
-                            {selectedItem?.type === "skill" && (
-                                <div className="space-y-3 text-left mt-4">
-                                    <div className="text-base">
-                                        <strong>{selectedItem.title}</strong> is
-                                        a{" "}
-                                        {selectedItem.required
-                                            ? "required"
-                                            : "recommended"}{" "}
-                                        skill in the {selectedItem.category}{" "}
-                                        category.
-                                    </div>
-                                    <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">
-                                            About this skill:
-                                        </h4>
-                                        <div className="text-sm">
+                        <DialogDescription asChild>
+                            <div>
+                                {selectedItem?.type === "skill" && (
+                                    <div className="space-y-3 text-left mt-4">
+                                        <div className="text-base">
+                                            <strong>
+                                                {selectedItem.title}
+                                            </strong>{" "}
+                                            is a{" "}
                                             {selectedItem.required
-                                                ? `This is a must-have skill for this career. Employers expect candidates to have solid proficiency in ${selectedItem.title}. Focus on building strong fundamentals and practical experience.`
-                                                : `While not strictly required, ${selectedItem.title} is highly valued by employers and can give you a competitive edge. Consider learning this skill to expand your opportunities.`}
+                                                ? "required"
+                                                : "recommended"}{" "}
+                                            skill in the {selectedItem.category}{" "}
+                                            category.
+                                        </div>
+                                        <div className="bg-accent/50 p-4 rounded-lg">
+                                            <h4 className="font-semibold mb-2">
+                                                About this skill:
+                                            </h4>
+                                            <div className="text-sm">
+                                                {selectedItem.required
+                                                    ? `This is a must-have skill for this career. Employers expect candidates to have solid proficiency in ${selectedItem.title}. Focus on building strong fundamentals and practical experience.`
+                                                    : `While not strictly required, ${selectedItem.title} is highly valued by employers and can give you a competitive edge. Consider learning this skill to expand your opportunities.`}
+                                            </div>
+                                        </div>
+                                        <div className="bg-accent/50 p-4 rounded-lg">
+                                            <h4 className="font-semibold mb-2">
+                                                How to learn:
+                                            </h4>
+                                            <ul className="text-sm space-y-1 list-disc list-inside">
+                                                <li>
+                                                    Start with online courses
+                                                    (Coursera, Udemy,
+                                                    freeCodeCamp)
+                                                </li>
+                                                <li>
+                                                    Practice through hands-on
+                                                    projects
+                                                </li>
+                                                <li>
+                                                    Join communities and forums
+                                                    for guidance
+                                                </li>
+                                                <li>
+                                                    Build a portfolio showcasing
+                                                    this skill
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
-                                    <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">
-                                            How to learn:
-                                        </h4>
-                                        <ul className="text-sm space-y-1 list-disc list-inside">
-                                            <li>
-                                                Start with online courses
-                                                (Coursera, Udemy, freeCodeCamp)
-                                            </li>
-                                            <li>
-                                                Practice through hands-on
-                                                projects
-                                            </li>
-                                            <li>
-                                                Join communities and forums for
-                                                guidance
-                                            </li>
-                                            <li>
-                                                Build a portfolio showcasing
-                                                this skill
-                                            </li>
-                                        </ul>
+                                )}
+                                {selectedItem?.type === "certification" && (
+                                    <div className="space-y-3 text-left mt-4">
+                                        <div className="text-base">
+                                            {selectedItem.description}
+                                        </div>
+                                        <div className="bg-accent/50 p-4 rounded-lg">
+                                            <h4 className="font-semibold mb-2">
+                                                Benefits:
+                                            </h4>
+                                            <div className="text-sm">
+                                                {selectedItem.benefits}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <strong>Duration:</strong>{" "}
+                                                {selectedItem.duration}
+                                            </div>
+                                            <div>
+                                                <strong>Cost:</strong>{" "}
+                                                {selectedItem.cost}
+                                            </div>
+                                            <div>
+                                                <strong>Level:</strong>{" "}
+                                                {selectedItem.difficulty}
+                                            </div>
+                                        </div>
+                                        {selectedItem.url && (
+                                            <a
+                                                href={selectedItem.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 text-primary hover:underline mt-2"
+                                            >
+                                                Learn More{" "}
+                                                <ExternalLink className="size-5" />
+                                            </a>
+                                        )}
                                     </div>
-                                </div>
-                            )}
-                            {selectedItem?.type === "certification" && (
-                                <div className="space-y-3 text-left mt-4">
-                                    <div className="text-base">
-                                        {selectedItem.description}
+                                )}
+                                {selectedItem?.type === "interview" && (
+                                    <div className="space-y-3 text-left mt-4">
+                                        <div className="text-base">
+                                            {selectedItem.description}
+                                        </div>
+                                        <div className="bg-accent/50 p-4 rounded-lg">
+                                            <h4 className="font-semibold mb-2">
+                                                Example Response:
+                                            </h4>
+                                            <div className="text-sm italic">
+                                                {selectedItem.example}
+                                            </div>
+                                        </div>
+                                        <div className="bg-accent/50 p-4 rounded-lg">
+                                            <h4 className="font-semibold mb-2">
+                                                Tips:
+                                            </h4>
+                                            <ul className="text-sm space-y-1 list-disc list-inside">
+                                                <li>
+                                                    Be specific and provide
+                                                    concrete examples
+                                                </li>
+                                                <li>
+                                                    Use the STAR method
+                                                    (Situation, Task, Action,
+                                                    Result)
+                                                </li>
+                                                <li>
+                                                    Practice your response out
+                                                    loud
+                                                </li>
+                                                <li>
+                                                    Keep your answer concise
+                                                    (2-3 minutes)
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                    <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">
-                                            Benefits:
-                                        </h4>
+                                )}
+                                {selectedItem?.type === "project" && (
+                                    <div className="space-y-3 text-left mt-4">
+                                        <div className="text-base">
+                                            {selectedItem.description}
+                                        </div>
+                                        <div className="bg-accent/50 p-4 rounded-lg">
+                                            <h4 className="font-semibold mb-2">
+                                                Learning Outcomes:
+                                            </h4>
+                                            <div className="text-sm">
+                                                {selectedItem.outcomes}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold mb-2">
+                                                Tech Stack:
+                                            </h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedItem.techStack?.map(
+                                                    (
+                                                        tech: string,
+                                                        i: number
+                                                    ) => (
+                                                        <span
+                                                            key={i}
+                                                            className="bg-primary/10 text-primary px-3 py-1 rounded text-sm"
+                                                        >
+                                                            {tech}
+                                                        </span>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
                                         <div className="text-sm">
-                                            {selectedItem.benefits}
+                                            <strong>Estimated Time:</strong>{" "}
+                                            {selectedItem.estimatedTime}
+                                        </div>
+                                        <div className="bg-accent/50 p-4 rounded-lg">
+                                            <h4 className="font-semibold mb-2">
+                                                Getting Started:
+                                            </h4>
+                                            <ul className="text-sm space-y-1 list-disc list-inside">
+                                                <li>
+                                                    Break the project into
+                                                    smaller milestones
+                                                </li>
+                                                <li>
+                                                    Set up version control
+                                                    (Git/GitHub)
+                                                </li>
+                                                <li>
+                                                    Document your progress and
+                                                    learnings
+                                                </li>
+                                                <li>
+                                                    Deploy and share your
+                                                    project
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <strong>Duration:</strong>{" "}
-                                            {selectedItem.duration}
+                                )}
+                                {selectedItem?.type === "book" && (
+                                    <div className="space-y-3 text-left mt-4">
+                                        <div className="text-sm text-muted-foreground">
+                                            by {selectedItem.author}
                                         </div>
-                                        <div>
-                                            <strong>Cost:</strong>{" "}
-                                            {selectedItem.cost}
+                                        <div className="text-base">
+                                            {selectedItem.description}
                                         </div>
-                                        <div>
+                                        <div className="bg-accent/50 p-4 rounded-lg">
+                                            <h4 className="font-semibold mb-2">
+                                                Key Takeaways:
+                                            </h4>
+                                            <ul className="text-sm space-y-1 list-disc list-inside">
+                                                {selectedItem.keyTakeaways?.map(
+                                                    (
+                                                        takeaway: string,
+                                                        i: number
+                                                    ) => (
+                                                        <li key={i}>
+                                                            {takeaway}
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        </div>
+                                        <div className="text-sm">
                                             <strong>Level:</strong>{" "}
-                                            {selectedItem.difficulty}
+                                            {selectedItem.level}
                                         </div>
+                                        {selectedItem.link && (
+                                            <a
+                                                href={selectedItem.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 text-primary hover:underline mt-2"
+                                            >
+                                                View Book{" "}
+                                                <ExternalLink className="size-5" />
+                                            </a>
+                                        )}
                                     </div>
-                                    {selectedItem.url && (
-                                        <a
-                                            href={selectedItem.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 text-primary hover:underline mt-2"
-                                        >
-                                            Learn More{" "}
-                                            <ExternalLink className="size-5" />
-                                        </a>
-                                    )}
-                                </div>
-                            )}
-                            {selectedItem?.type === "interview" && (
-                                <div className="space-y-3 text-left mt-4">
-                                    <div className="text-base">
-                                        {selectedItem.description}
-                                    </div>
-                                    <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">
-                                            Example Response:
-                                        </h4>
-                                        <div className="text-sm italic">
-                                            {selectedItem.example}
-                                        </div>
-                                    </div>
-                                    <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">
-                                            Tips:
-                                        </h4>
-                                        <ul className="text-sm space-y-1 list-disc list-inside">
-                                            <li>
-                                                Be specific and provide concrete
-                                                examples
-                                            </li>
-                                            <li>
-                                                Use the STAR method (Situation,
-                                                Task, Action, Result)
-                                            </li>
-                                            <li>
-                                                Practice your response out loud
-                                            </li>
-                                            <li>
-                                                Keep your answer concise (2-3
-                                                minutes)
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
-                            {selectedItem?.type === "project" && (
-                                <div className="space-y-3 text-left mt-4">
-                                    <div className="text-base">
-                                        {selectedItem.description}
-                                    </div>
-                                    <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">
-                                            Learning Outcomes:
-                                        </h4>
-                                        <div className="text-sm">
-                                            {selectedItem.outcomes}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold mb-2">
-                                            Tech Stack:
-                                        </h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {selectedItem.techStack?.map(
-                                                (tech: string, i: number) => (
-                                                    <span
-                                                        key={i}
-                                                        className="bg-primary/10 text-primary px-3 py-1 rounded text-sm"
-                                                    >
-                                                        {tech}
-                                                    </span>
-                                                )
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="text-sm">
-                                        <strong>Estimated Time:</strong>{" "}
-                                        {selectedItem.estimatedTime}
-                                    </div>
-                                    <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">
-                                            Getting Started:
-                                        </h4>
-                                        <ul className="text-sm space-y-1 list-disc list-inside">
-                                            <li>
-                                                Break the project into smaller
-                                                milestones
-                                            </li>
-                                            <li>
-                                                Set up version control
-                                                (Git/GitHub)
-                                            </li>
-                                            <li>
-                                                Document your progress and
-                                                learnings
-                                            </li>
-                                            <li>
-                                                Deploy and share your project
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
-                            {selectedItem?.type === "book" && (
-                                <div className="space-y-3 text-left mt-4">
-                                    <div className="text-sm text-muted-foreground">
-                                        by {selectedItem.author}
-                                    </div>
-                                    <div className="text-base">
-                                        {selectedItem.description}
-                                    </div>
-                                    <div className="bg-accent/50 p-4 rounded-lg">
-                                        <h4 className="font-semibold mb-2">
-                                            Key Takeaways:
-                                        </h4>
-                                        <ul className="text-sm space-y-1 list-disc list-inside">
-                                            {selectedItem.keyTakeaways?.map(
-                                                (
-                                                    takeaway: string,
-                                                    i: number
-                                                ) => (
-                                                    <li key={i}>{takeaway}</li>
-                                                )
-                                            )}
-                                        </ul>
-                                    </div>
-                                    <div className="text-sm">
-                                        <strong>Level:</strong>{" "}
-                                        {selectedItem.level}
-                                    </div>
-                                    {selectedItem.link && (
-                                        <a
-                                            href={selectedItem.link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 text-primary hover:underline mt-2"
-                                        >
-                                            View Book{" "}
-                                            <ExternalLink className="size-5" />
-                                        </a>
-                                    )}
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </DialogDescription>
                     </DialogHeader>
                 </DialogContent>
