@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 "use client";
 
 import { Input } from "@/components/ui/input";
@@ -5,12 +6,17 @@ import { useUserData } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 import { Search, Timer } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useMemo, useState } from "react";
 
 export default function page() {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { conversations } = useUserData();
     const conversationsLen = conversations.length - 1;
+    const [search, setSearch] = useState("");
+    const filteredConverations = useMemo(() => {
+        return conversations.filter((conversation) =>
+            conversation.title.toLowerCase().includes(search.toLowerCase())
+        );
+    }, [conversations, search]);
     return (
         <main className="flex flex-col overflow-hidden size-full mx-auto max-w-5xl p-5">
             <div className="relative">
@@ -21,11 +27,15 @@ export default function page() {
                 <Input
                     className="pl-10"
                     placeholder="Search your Conversations..."
+                    value={search}
+                    onInput={(e) => {
+                        setSearch((e.target as HTMLInputElement).value);
+                    }}
                 />
             </div>
-            <div>
+            <div className="h-full overflow-y-auto">
                 <ul className="flex flex-col my-4">
-                    {conversations.map((conversation, i) => (
+                    {filteredConverations.map((conversation, i) => (
                         <li
                             key={conversation.id}
                             className={cn(
